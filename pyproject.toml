@@ -2,7 +2,9 @@
 name = "projeto-kaggle"
 version = "0.0.1"
 description = "Projetinho massa de previsão de dados no Kaggle"
-authors = ["Luis Felipe Araujo de Oliveira <luisfelipearaujo503@gmail.com>"]
+authors = [
+  { name = "Luis Felipe Araujo de Oliveira", email = "luisfelipearaujo503@gmail.com" }
+]
 requires-python = ">=3.11,<=3.13"
 dependencies = [
     "numpy>=2.3.5",
