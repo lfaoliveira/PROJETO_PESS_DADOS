@@ -12,6 +12,7 @@ dependencies = [
     "kagglehub>=0.3.13",
     "torch>=2.7.0",
     # "torchvision>=0.22.0",
+    "scikit-learn>=1.7.2",
 ]
 
 [tool.uv.sources]
