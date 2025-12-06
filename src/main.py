@@ -9,7 +9,7 @@ shuffle = False
 
 dataset = StrokeDataset()
 
-dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, num_workers=WORKERS)
+dataloader: DataLoader = DataLoader(dataset, batch_size=BATCH_SIZE, num_workers=WORKERS)
 
 
 if __name__ == "__main__":
