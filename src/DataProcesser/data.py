@@ -46,8 +46,7 @@ class StrokeDataset(Dataset):
         ## AQUI VAI PREPARACAO DOS DADOS
         self.data_prep(STR_COL)
         print("\n")
-        self.labels = self.data.loc[:, LABELS_COLUMN]
-        self.data = self.data.drop(columns=LABELS_COLUMN)
+        print(f"DF DROPADO: {self.data.head()}\n")
 
     def __getitem__(self, index: Tensor | int):
         print()
@@ -93,7 +92,8 @@ class StrokeDataset(Dataset):
             self.data[f"{col}_code"] = self.data[f"{col}"].cat.codes
 
         self.data = self.data.drop(columns=STR_COL)
-        print(f"DF DROPADO: {self.data.head()}\n")
+        self.labels = self.data.loc[:, LABELS_COLUMN]
+        self.data = self.data.drop(columns=LABELS_COLUMN)
 
         ## standard scaler pra normalizar dados para media 0 e desvio padrao 1
         scaler = StandardScaler()
