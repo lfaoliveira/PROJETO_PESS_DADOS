@@ -1,8 +1,7 @@
 from enum import StrEnum
-
-import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset
+
 # from pandas import Series, DataFrame
 import pandera.pandas as pa
 from pandera.typing import DataFrame, Series
@@ -12,6 +11,7 @@ from kagglehub import KaggleDatasetAdapter, dataset_download, dataset_load
 # import pandas
 
 LABELS_COLUMN = "stroke"
+
 
 class CATEGORICAL_COLUMNS(StrEnum):
     GENDER = "gender"
@@ -32,9 +32,8 @@ class MySchema(pa.DataFrameModel):
     hypertension: Series[int]
     heart_disease: Series[int]
     avg_glucose_level: Series[float]
-    bmi: Series[float] 
+    bmi: Series[float]
     stroke: Series[int]
-
 
 
 class StrokeDataset(Dataset):
@@ -51,9 +50,7 @@ class StrokeDataset(Dataset):
     def __getitem__(self, index: Tensor | int):
         print()
         if type(index) is int:
-            return Tensor(self.data.loc[index].to_numpy()), Tensor(
-                [self.labels[index]]
-            ) 
+            return Tensor(self.data.loc[index].to_numpy()), Tensor([self.labels[index]])
         elif type(index) is Tensor:
             return self.data.loc[index.tolist()], self.labels[index.tolist()].to_numpy()
         else:
@@ -77,11 +74,11 @@ class StrokeDataset(Dataset):
         )
         # tira valores nulos pra evitar problemas
         self.data = self.data.dropna()
-        #valida schema
+        # valida schema
         # validated = MySchema.validate(self.data)
         # print(f"DF NORMAL: {validated.head()}\n")
         assert type(self.data) is pd.DataFrame
-        
+
     # funcao para preparacao de dados, caso seja necessario
     def data_prep(self, bad_columns: list[CATEGORICAL_COLUMNS]) -> None:
         STR_COL = bad_columns
