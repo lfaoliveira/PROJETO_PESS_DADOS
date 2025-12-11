@@ -5,7 +5,6 @@ import torch
 from lightning import LightningModule
 from sklearn.metrics import precision_recall_fscore_support
 import numpy as np
-from numpy.typing import ArrayLike
 
 
 class MLP(LightningModule):
@@ -22,6 +21,7 @@ class MLP(LightningModule):
             self.model.append(nn.SELU())
 
         self.model.append(nn.Linear(hidden_dims, num_classes, dtype=torch.float32))
+        self.example_input_array = torch.zeros(input_dim, dtype=torch.float32) 
         self.save_hyperparameters()
         # print(self.model)
 

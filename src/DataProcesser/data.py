@@ -2,13 +2,11 @@ from enum import StrEnum
 import pandas as pd
 from torch.utils.data import Dataset
 
-# from pandas import Series, DataFrame
 import pandera.pandas as pa
 from pandera.typing import DataFrame, Series
 from sklearn.preprocessing import StandardScaler
 from torch.types import Tensor
 from kagglehub import KaggleDatasetAdapter, dataset_download, dataset_load
-# import pandas
 
 LABELS_COLUMN = "stroke"
 
