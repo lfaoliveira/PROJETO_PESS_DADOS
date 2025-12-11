@@ -4,7 +4,7 @@ import pandas as pd
 from torch.utils.data import Dataset
 
 import pandera.pandas as pa
-from pandera.typing import DataFrame, Series
+from pandera.typing import DataFrame, Series, Index
 from sklearn.preprocessing import StandardScaler
 from torch.types import Tensor
 from kagglehub import KaggleDatasetAdapter, dataset_download, dataset_load
@@ -21,7 +21,7 @@ class CATEGORICAL_COLUMNS(StrEnum):
 
 
 class MySchema(pa.DataFrameModel):
-    id: Series[int]
+    id: Index[int]
     age: Series[float]
     gender: Series[str]
     ever_married: Series[str]
