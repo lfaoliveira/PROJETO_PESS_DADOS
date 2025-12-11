@@ -71,7 +71,7 @@ def main():
         persistent_workers=True,
     )
 
-    mlflow_logger = MLFlowLogger(experiment_name=EXP_NAME, tracking_uri="file:./mlruns")
+    mlflow_logger = MLFlowLogger(experiment_name=EXP_NAME, tracking_uri=URL_TRACKING_MLFLOW)
 
     trainer = L.Trainer(
         max_epochs=EPOCHS,
@@ -100,3 +100,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

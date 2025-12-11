@@ -67,5 +67,5 @@ class MLP(LightningModule):
         optimizer = optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
 
-    # def forward(self, x) -> Tensor:
-    #     return self.model(x)
+    def forward(self, x) -> torch.Tensor:
+        return self.model(x)
