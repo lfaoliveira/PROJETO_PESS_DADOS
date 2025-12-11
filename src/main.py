@@ -20,16 +20,17 @@ from lightning.pytorch.loggers import MLFlowLogger
 
 def zip_res(path_sqlite: str, path_mlflow: str, filename: str):
     import shutil
-    
+
     PATH_TEMP = os.path.join(os.getcwd(), "ZIP_TEMP")
     os.makedirs(PATH_TEMP)
 
     shutil.copy(path_sqlite, os.path.join(PATH_TEMP, path_sqlite))
     shutil.copytree(path_mlflow, os.path.join(PATH_TEMP, path_mlflow))
 
-    shutil.make_archive(filename.replace('.zip', ''), 'zip', PATH_TEMP)
+    shutil.make_archive(filename.replace(".zip", ""), "zip", PATH_TEMP)
     shutil.rmtree(PATH_TEMP)
     print(f"PATH ZIPFILE: {os.path.abspath(filename)}")
+
 
 ## -----------------------------COLAR NO KAGGLE------------------
 def main():
@@ -41,7 +42,7 @@ def main():
     EPOCHS = 2
     EXP_NAME = "stroke_1"
     RUN_ID = "stroke_teste"
-    URL_TRACKING_MLFLOW="sqlite:///mlruns.db"
+    URL_TRACKING_MLFLOW = "sqlite:///mlruns.db"
     mlflow.set_tracking_uri(URL_TRACKING_MLFLOW)
     mlflow.set_experiment(EXP_NAME)
 
@@ -87,10 +88,15 @@ def main():
     print("\n TREINAMENTO FINALIZADO COM SUCESSO!\n")
     print("-" for _ in range(15))
 
-    print('EXPORTANDO MLFLOW... ')
-    zip_res(URL_TRACKING_MLFLOW.replace("sqlite:///", "./"), "./mlruns", f"{EXP_NAME}_{RUN_ID}")
+    print("EXPORTANDO MLFLOW... ")
+    zip_res(
+        URL_TRACKING_MLFLOW.replace("sqlite:///", "./"),
+        "./mlruns",
+        f"{EXP_NAME}_{RUN_ID}",
+    )
 
-    print('FIM SCRIPT ')
+    print("FIM SCRIPT ")
+
 
 if __name__ == "__main__":
     main()

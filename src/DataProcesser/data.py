@@ -1,4 +1,5 @@
 from enum import StrEnum
+import os
 import pandas as pd
 from torch.utils.data import Dataset
 
@@ -66,22 +67,26 @@ class StrokeDataset(Dataset):
         dataset_download(dataset_name)
         # Set the path to the file you'd like to load
         file_path = "healthcare-dataset-stroke-data.csv"
-        print(f"FILE_PATH: {file_path}")
 
-        # Load the latest version
-        self.data: DataFrame[MySchema] = dataset_load(
-            KaggleDatasetAdapter.PANDAS,
-            dataset_name,
-            file_path,
-        )
+        local_filename = "stroke.csv"
+        if not os.path.exists(local_filename):
+            # Load the latest version
+            self.data: DataFrame[MySchema] = dataset_load(
+                KaggleDatasetAdapter.PANDAS,
+                dataset_name,
+                file_path,
+            )
+            self.data.to_csv(local_filename, sep=",")
+        else:
+            self.data = DataFrame[MySchema](pd.read_csv(local_filename))
 
         # tira valores nulos pra evitar problemas
         self.data = self.data.dropna().set_index("id")
-        self.data.to_csv("stroke.csv", sep=",")
+
         # valida schema
-        # validated = MySchema.validate(self.data)
-        # print(f"DF NORMAL: {validated.head()}\n")
-        assert type(self.data) is pd.DataFrame
+
+        # gera erro se nao igualar o schema
+        self.data = MySchema.validate(self.data)
 
     # funcao para preparacao de dados, caso seja necessario
     def data_prep(self, bad_columns: list[CATEGORICAL_COLUMNS]) -> None:

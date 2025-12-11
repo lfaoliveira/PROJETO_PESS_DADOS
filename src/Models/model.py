@@ -21,7 +21,7 @@ class MLP(LightningModule):
             self.model.append(nn.SELU())
 
         self.model.append(nn.Linear(hidden_dims, num_classes, dtype=torch.float32))
-        self.example_input_array = torch.zeros(input_dim, dtype=torch.float32) 
+        self.example_input_array = torch.zeros(input_dim, dtype=torch.float32)
         self.save_hyperparameters()
         # print(self.model)
 
@@ -48,7 +48,9 @@ class MLP(LightningModule):
 
         loss = nn.functional.cross_entropy(logits, labels)
         prec, rec, f1, support = precision_recall_fscore_support(
-            labels.numpy(force=True), torch.argmax(logits, dim=1).numpy(force=True), zero_division=0
+            labels.numpy(force=True),
+            torch.argmax(logits, dim=1).numpy(force=True),
+            zero_division=0,
         )
 
         prec = np.mean(prec) if isinstance(prec, np.ndarray) else float(prec)
