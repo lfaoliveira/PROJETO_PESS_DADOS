@@ -18,6 +18,19 @@ from lightning import seed_everything
 from lightning.pytorch.loggers import MLFlowLogger
 
 
+def zip_res(path_sqlite: str, path_mlflow: str, filename: str):
+    import shutil
+    
+    PATH_TEMP = os.path.join(os.getcwd(), "ZIP_TEMP")
+    os.makedirs(PATH_TEMP)
+
+    shutil.copy(path_sqlite, os.path.join(PATH_TEMP, path_sqlite))
+    shutil.copytree(path_mlflow, os.path.join(PATH_TEMP, path_mlflow))
+
+    shutil.make_archive(filename.replace('.zip', ''), 'zip', PATH_TEMP)
+    shutil.rmtree(PATH_TEMP)
+    print(f"PATH ZIPFILE: {os.path.abspath(filename)}")
+
 ## -----------------------------COLAR NO KAGGLE------------------
 def main():
     ## ----------VARIAVEIS TREINO-----------
@@ -28,7 +41,8 @@ def main():
     EPOCHS = 2
     EXP_NAME = "stroke_1"
     RUN_ID = "stroke_teste"
-    mlflow.set_tracking_uri("file:./mlruns")
+    URL_TRACKING_MLFLOW="sqlite:///mlruns.db"
+    mlflow.set_tracking_uri(URL_TRACKING_MLFLOW)
     mlflow.set_experiment(EXP_NAME)
 
     ## ----------VARIAVEIS MODELO-----------
@@ -52,7 +66,7 @@ def main():
         val_dataset,
         batch_size=BATCH_SIZE,
         shuffle=False,
-        num_workers=WORKERS if os.environ["AMBIENTE"] == "LOCAL" else WORKERS + 3,
+        num_workers=WORKERS,
         persistent_workers=True,
     )
 
@@ -69,7 +83,14 @@ def main():
         # log model hyperparams to MLflow manually
         mlflow.log_params(dict(model.hparams))
         trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    print("-" for _ in range(15))
+    print("\n TREINAMENTO FINALIZADO COM SUCESSO!\n")
+    print("-" for _ in range(15))
 
+    print('EXPORTANDO MLFLOW... ')
+    zip_res(URL_TRACKING_MLFLOW.replace("sqlite:///", "./"), "./mlruns", f"{EXP_NAME}_{RUN_ID}")
+
+    print('FIM SCRIPT ')
 
 if __name__ == "__main__":
     main()
