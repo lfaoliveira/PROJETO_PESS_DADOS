@@ -12,7 +12,7 @@ else:
 
 import mlflow
 from DataProcesser.data import StrokeDataset
-from Models.model import MLP
+from Models.mlp import MLP
 from lightning import seed_everything, Trainer
 from lightning.pytorch.loggers import MLFlowLogger
 from mlflow.pytorch import autolog
