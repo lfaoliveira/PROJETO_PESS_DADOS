@@ -18,38 +18,10 @@ import torch
 from lightning import seed_everything, Trainer
 from lightning.pytorch.loggers import MLFlowLogger
 from mlflow.pytorch import autolog
+from torch.utils.data import Dataset
 
-
-## -----------------------------COLAR NO KAGGLE------------------
-def main():
-    ## ----------VARIAVEIS TREINO-----------
-    RAND_SEED = 42
-    seed_everything(RAND_SEED)
-    BATCH_SIZE = 8
-    cpus = os.cpu_count()
-    WORKERS = cpus if cpus is not None else 1
-    EPOCHS = 2
-    EXP_NAME = "stroke_1"
-    RUN_NAME = None  #   "stroke_teste"
-    MLF_TRACK_URI = "sqlite:///mlflow.db"
-    AMBIENTE = os.environ["AMBIENTE"]
-    # MLF_TRACK_URI = "file:./mlruns"
-    # mlflow.set_tracking_uri("file:./mlruns")
-    # mlflow.set_experiment(EXP_NAME)
-
-    mlflow.set_tracking_uri(MLF_TRACK_URI)
-    mlflow.set_experiment(EXP_NAME)
-    autolog(log_models=True, checkpoint=True, exclusive=False)
-
-    ## ----------VARIAVEIS MODELO-----------
-    HIDN_DIMS = 32
-    N_CLASSES = 2
-    N_LAYERS = 5
-
-    dataset = StrokeDataset()
-    INPUT_DIMS = dataset.data.shape[1]
-
-    model = MLP(INPUT_DIMS, HIDN_DIMS, N_LAYERS, N_CLASSES)
+def create_dataloaders(dataset: Dataset, BATCH_SIZE: int, WORKERS: int):
+    
     train_dataset, val_dataset = torch.utils.data.random_split(dataset, [0.8, 0.2])
 
     train_loader = DataLoader(
@@ -67,10 +39,44 @@ def main():
         num_workers=WORKERS,
         persistent_workers=True,
     )
+    return train_loader, val_loader
 
+
+## -----------------------------COLAR NO KAGGLE------------------
+def main():
+    RAND_SEED = 42
+    seed_everything(RAND_SEED)
+    ## ----------VARIAVEIS TREINO-----------
+    BATCH_SIZE = 8
+    cpus = os.cpu_count()
+    WORKERS = cpus if cpus is not None else 1
+    EPOCHS = 2
+    #### -------- VARIAVEIS DE LOGGING ------------
+    EXP_NAME = "stroke_1"
+    RUN_NAME: str | None = None  # noma da RUN: pode ser aleatório ou definido
+    MLF_TRACK_URI = "sqlite:///mlflow.db"
+    AMBIENTE = os.environ["AMBIENTE"]
+
+    mlflow.set_tracking_uri(MLF_TRACK_URI)
+    mlflow.set_experiment(EXP_NAME)
+    autolog(log_models=True, checkpoint=True, exclusive=False)
+
+    ## ----------VARIAVEIS MODELO-----------
+    HIDN_DIMS = 32
+    N_CLASSES = 2
+    N_LAYERS = 5
+
+    dataset = StrokeDataset()
+    train_loader, val_loader = create_dataloaders(dataset, BATCH_SIZE, WORKERS)
+    
+    INPUT_DIMS = dataset.data.shape[1]
+    model = MLP(INPUT_DIMS, HIDN_DIMS, N_LAYERS, N_CLASSES)
+
+
+    #loop principal de treinamento
     with mlflow.start_run(run_name=RUN_NAME) as run:
         active_run_id = run.info.run_id
-        # log model hyperparams to MLflow manually
+
         mlflow_logger = MLFlowLogger(
             experiment_name=EXP_NAME,
             tracking_uri=MLF_TRACK_URI,
@@ -93,3 +99,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    if os.environ["AMBIENTE"] == "LOCAL":
+        from visualyze import see_model
+        see_model()

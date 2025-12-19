@@ -1,6 +1,6 @@
 import subprocess
 
-if __name__ == "__main__":
+def see_model():
     subprocess.Popen(
         [
             "mlflow",
@@ -15,3 +15,7 @@ if __name__ == "__main__":
             "5000",
         ]
     )
+
+
+if __name__ == "__main__":
+    see_model()
