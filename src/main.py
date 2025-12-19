@@ -26,7 +26,8 @@ def main():
     RAND_SEED = 42
     seed_everything(RAND_SEED)
     BATCH_SIZE = 8
-    WORKERS = 1
+    cpus = os.cpu_count()
+    WORKERS = cpus if cpus is not None else 1
     EPOCHS = 2
     EXP_NAME = "stroke_1"
     RUN_NAME = None #   "stroke_teste"
@@ -68,7 +69,7 @@ def main():
         max_epochs=EPOCHS,
         devices=1,
         accelerator="gpu" if AMBIENTE == "KAGGLE" else "cpu",
-        enable_autolog_hparams=False,
+        # enable_autolog_hparams=True,
         logger=mlflow_logger,
         enable_checkpointing=False,
     )
@@ -76,8 +77,9 @@ def main():
     autolog(log_models=True, checkpoint=True)
     with mlflow.start_run(run_name=RUN_NAME):
         # log model hyperparams to MLflow manually
-        # mlflow.log_params(dict(model.hparams))
+        mlflow.log_params(dict(model.hparams))
         trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+
 
 
 if __name__ == "__main__":
