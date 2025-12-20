@@ -5,26 +5,24 @@ import torch
 from lightning import LightningModule
 from sklearn.metrics import precision_recall_fscore_support
 import numpy as np
+from kan import KAN
 
 
-class MLP(LightningModule):
+class KAN_(LightningModule):
     def __init__(
-        self, input_dim: int, hidden_dims: int, n_layers: int, num_classes: int, **kwargs
+        self, input_dim: int, hidden_dims: int, n_layers: int, num_classes: int
     ):
-        self.hyperparams = kwargs.get("hyperparameters")  
-        super().__init__()
+        
         self.model = nn.Sequential(
-            nn.Linear(input_dim, hidden_dims, dtype=torch.float32),
-            nn.ReLU(),
+            KAN(
+                width=[input_dim, 20, 20, 20, num_classes],
+                grid=12,
+                k=5,
+                symbolic_enabled=False,
+            )
         )
-        for _ in range(n_layers):
-            self.model.append(nn.LazyLinear(hidden_dims, dtype=torch.float32))
-            self.model.append(nn.SELU())
-
-        self.model.append(nn.Linear(hidden_dims, num_classes, dtype=torch.float32))
         self.example_input_array = torch.zeros(input_dim, dtype=torch.float32)
         self.save_hyperparameters()
-        # print(self.model)
 
     def training_step(self, batch: tuple[torch.Tensor, torch.Tensor], batch_idx: int):
         # training_step defines the train loop.

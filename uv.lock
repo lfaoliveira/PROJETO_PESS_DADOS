@@ -1700,6 +1700,8 @@ dependencies = [
     { name = "optuna" },
     { name = "pandas" },
     { name = "pandera", extra = ["pandas"] },
+    { name = "pykan" },
+    { name = "pytorch-lightning" },
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "tensorboard" },
@@ -1720,6 +1722,8 @@ requires-dist = [
     { name = "optuna", specifier = ">=4.6.0" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pandera", extras = ["pandas"], specifier = ">=0.27.0" },
+    { name = "pykan", specifier = ">=0.2.8" },
+    { name = "pytorch-lightning", specifier = "<2.6.0" },
     { name = "scikit-learn", specifier = ">=1.7.2" },
     { name = "scipy", specifier = ">=1.16.3" },
     { name = "tensorboard", specifier = ">=2.20.0" },
@@ -1964,6 +1968,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pykan"
+version = "0.2.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9b/dc/8f15815b9ffe8d388ff48aa1aa5b700d17d75f19c4d00f78db013d82ad41/pykan-0.2.8.tar.gz", hash = "sha256:b530b96a9f0584db0a3a80b0425b479613eadce966de96bce8b787b60a8abc73", size = 80870, upload-time = "2024-11-14T21:40:24.119Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/e2/c0103e253776b2ec01232cceb9f96fe4ff1b1f69150a0f5220f2cca78a93/pykan-0.2.8-py3-none-any.whl", hash = "sha256:31261e40973053ab87cff19713f5d9e1f451f4f9ab183ce56edf2a4a44127213", size = 78055, upload-time = "2024-11-14T21:40:22.659Z" },
+]
+
+[[package]]
 name = "pyparsing"
 version = "3.2.5"
 source = { registry = "https://pypi.org/simple" }
@@ -1995,7 +2008,7 @@ wheels = [
 
 [[package]]
 name = "pytorch-lightning"
-version = "2.6.0"
+version = "2.5.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fsspec", extra = ["http"] },
@@ -2009,9 +2022,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/07/d7/e3963d9669758f93b07941f4e2e82a394eb3d0980e29baa4764f3bad6689/pytorch_lightning-2.6.0.tar.gz", hash = "sha256:25b0d4f05e1f33b72be0920c34d0465777fe5f623228f9d6252b4b0f685d7037", size = 658853, upload-time = "2025-11-28T09:34:13.098Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0a/1f/94a441d30779e1ffa5f7dc2ac5fa374c142d8b96c347a49a30226264124e/pytorch_lightning-2.5.6.tar.gz", hash = "sha256:c428faaceef74be50b870814d0d7e9f9c6ee748b8769a2afd3366bc69daf3a0f", size = 642830, upload-time = "2025-11-05T20:53:04.871Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/77/eb/cc6dbfe70d15318dbce82674b1e8057cef2634ca9f9121a16b8a06c630db/pytorch_lightning-2.6.0-py3-none-any.whl", hash = "sha256:ee72cff4b8c983ecfaae8599382544bd5236d9eb300adc7dd305f359195f4e79", size = 849476, upload-time = "2025-11-28T09:34:11.271Z" },
+    { url = "https://files.pythonhosted.org/packages/17/e4/32ed2f33c1b634f7c2895369222f4f8cb345044f4642bbff718e7dd1e0b7/pytorch_lightning-2.5.6-py3-none-any.whl", hash = "sha256:037bad1e2fd94d5eb6c5144f045fd4c1070c3d38fc9c14d9f3774a3a9be54dff", size = 831555, upload-time = "2025-11-05T20:53:03.316Z" },
 ]
 
 [[package]]
