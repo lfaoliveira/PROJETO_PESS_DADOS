@@ -1,14 +1,18 @@
+import shutil
 import subprocess
+from pathlib import Path
+import pathlib
 
-def see_model():
+
+def see_model(database: pathlib.Path, folder: pathlib.Path):
     subprocess.Popen(
         [
             "mlflow",
             "ui",
             "--backend-store-uri",
-            "sqlite:///mlflow.db",
+            f"sqlite:///{database}",
             "--default-artifact-root",
-            "./mlruns",
+            folder,
             "--host",
             "127.0.0.1",
             "--port",
@@ -18,4 +22,10 @@ def see_model():
 
 
 if __name__ == "__main__":
-    see_model()
+    PATH_RES_ZIPADO = Path("c:\\Users\\Eu\\Downloads\\resultado_kaggle_stroke_1.zip")
+    DIR = Path(Path.cwd(), PATH_RES_ZIPADO.name.replace(".zip", ""))
+    if not DIR.exists():
+        DIR.mkdir()
+        shutil.unpack_archive(PATH_RES_ZIPADO, DIR)
+
+    see_model(DIR / "mlflow.db", DIR / "mlruns")

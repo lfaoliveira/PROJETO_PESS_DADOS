@@ -1,17 +1,18 @@
 import gc
-import os
+from pathlib import Path
 
 import torch
+import os
 
-if os.path.exists("/kaggle"):
-    PATH_DATASET = "/kaggle/working/PROJETO_PESS_DADOS"
-    os.chdir("/kaggle/working/PROJETO_PESS_DADOS/src")
+if Path("/kaggle").exists():
+    PATH_DATASET = Path("/kaggle/working/PROJETO_PESS_DADOS/src")
+    os.chdir(PATH_DATASET)
     os.environ["AMBIENTE"] = "KAGGLE"
-elif os.path.exists("/content"):
-    PATH_DATASET = "/content/DELETAR"
+elif Path("/content").exists():
+    PATH_DATASET = Path("/content/DELETAR")
     os.environ["AMBIENTE"] = "COLAB"
 else:
-    PATH_DATASET = os.path.abspath(".")
+    PATH_DATASET = Path.cwd()
     os.environ["AMBIENTE"] = "LOCAL"
 
 import mlflow
@@ -25,6 +26,23 @@ from lightning.pytorch.callbacks import EarlyStopping
 # from Models.optimizer import Optimizer
 
 
+def zip_res(path_sqlite: str, path_mlflow: Path, filename: str):
+    import shutil
+
+    path_sqlite_clean = path_sqlite.replace("sqlite:///", "")
+    print(f"CWD: {Path.cwd()}\n")
+    PATH_TEMP = Path.cwd() / "ZIP_TEMP"
+    shutil.rmtree(PATH_TEMP, ignore_errors=True)
+    PATH_TEMP.mkdir(parents=True, exist_ok=True)
+
+    shutil.copy(path_sqlite_clean, PATH_TEMP / Path(path_sqlite_clean).name)
+    shutil.copytree(path_mlflow, PATH_TEMP / path_mlflow.name)
+
+    shutil.make_archive(filename.replace(".zip", ""), "zip", PATH_TEMP)
+    shutil.rmtree(PATH_TEMP)
+    print(f"PATH ZIPFILE: {Path(filename).resolve()}")
+
+
 ## -----------------------------COLAR NO KAGGLE------------------
 def main():
     ###------SEEDS---------###
@@ -35,7 +53,8 @@ def main():
     cpus = os.cpu_count()
     WORKERS = cpus if cpus is not None else 1
     EPOCHS = 2
-    TRIALS = 50
+    PATIENCE = 5
+    TRIALS = 1
     #### -------- VARIAVEIS DE LOGGING ------------
     EXP_NAME = "stroke_1"
     RUN_NAME: str | None = None  # noma da RUN: pode ser aleatório ou definido
@@ -43,7 +62,8 @@ def main():
         MLF_TRACK_URI = f"sqlite:///{PATH_DATASET}/mlflow.db"
     else:
         MLF_TRACK_URI = "sqlite:///mlflow.db"
-    AMBIENTE = os.environ["AMBIENTE"]
+    AMBIENTE = os.environ["AMBIENTE"] == "KAGGLE"
+    GPU = True if AMBIENTE in ["KAGGLE", "COLAB"] else False
 
     mlflow.set_tracking_uri(MLF_TRACK_URI)
     mlflow.set_experiment(EXP_NAME)
@@ -81,6 +101,7 @@ def main():
         model = MLP(
             INPUT_DIMS, hidn_dims, n_layers, N_CLASSES, hyperparameters=hyperparameters
         )
+        _ = model(model.example_input_array)
 
         with mlflow.start_run(run_name=f"trial_{trial.number}", nested=True) as run:
             active_run_id = run.info.run_id
@@ -92,12 +113,14 @@ def main():
                 run_id=active_run_id,
             )
 
-            early_stopping = EarlyStopping(monitor="val_loss", patience=5, mode="min")
+            early_stopping = EarlyStopping(
+                monitor="val_loss", patience=PATIENCE, mode="min"
+            )
 
             trainer = Trainer(
                 max_epochs=EPOCHS,
-                devices=1,
-                accelerator="gpu" if AMBIENTE == "KAGGLE" else "cpu",
+                devices=-1 if GPU else 1,
+                accelerator="gpu" if GPU else "cpu",
                 logger=mlflow_logger,
                 enable_checkpointing=False,
                 callbacks=[early_stopping],
@@ -132,9 +155,13 @@ def main():
         # torch.cuda.empty_cache()
         # return trainer.callback_metrics["val_loss"].item()
 
-    # study = optuna.create_study(direction="minimize")
-    # study.optimize(optimize, n_trials=TRIALS, timeout=60*10)
-    # print("Best hyperparameters:", study.best_trial.params)
+    NAME_RESZIP = f"resultado_kaggle_{EXP_NAME}"
+    MLRUNS_FOLDER = PATH_DATASET / "mlruns"
+    zip_res(MLF_TRACK_URI, MLRUNS_FOLDER, NAME_RESZIP)
+    print("\n", "=" * 60)
+    print(f"RESULTADOS ZIPADOS {Path(NAME_RESZIP).resolve()}")
+    print("=" * 60, "\n")
+    return
 
 
 if __name__ == "__main__":
@@ -144,4 +171,4 @@ if __name__ == "__main__":
     if os.environ["AMBIENTE"] == "LOCAL":
         from visualyze import see_model
 
-        see_model()
+        see_model(PATH_DATASET / "mlflow.db", PATH_DATASET / ".." / "mlruns")
