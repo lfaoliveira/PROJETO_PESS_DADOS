@@ -1,26 +1,28 @@
 from pathlib import Path
 import os
 
-from DataProcesser.datamodule import StrokeDataModule
 
 if Path("/kaggle").exists():
     PATH_DATASET = Path("/kaggle/working/PROJETO_PESS_DADOS")
-    os.chdir(PATH_DATASET)
+    PATH_CODE = PATH_DATASET / "src"
+    os.chdir(PATH_CODE)
     os.environ["AMBIENTE"] = "KAGGLE"
 elif Path("/content").exists():
     PATH_DATASET = Path("/content/DELETAR")
     os.environ["AMBIENTE"] = "COLAB"
 else:
     PATH_DATASET = Path.cwd()
+    PATH_CODE = PATH_DATASET / "src"
+    os.chdir(PATH_CODE)
     os.environ["AMBIENTE"] = "LOCAL"
 import gc
 import mlflow
-from DataProcesser.dataset import StrokeDataset
 from Models.mlp import MLP
 from lightning import seed_everything, Trainer
 from lightning.pytorch.loggers import MLFlowLogger
 from mlflow.pytorch import autolog
 from lightning.pytorch.callbacks import EarlyStopping
+from DataProcesser.datamodule import StrokeDataModule
 
 
 def zip_res(path_sqlite: str, path_mlflow: Path, filename: str):
@@ -71,7 +73,7 @@ def main():
 
     datamodule.prepare_data()
     datamodule.setup("fit")
-    
+
     INPUT_DIMS = datamodule.input_dims or -1
     assert INPUT_DIMS > 0
     model = MLP(INPUT_DIMS, HIDN_DIMS, N_LAYERS, N_CLASSES)
@@ -113,8 +115,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        raise e
     gc.collect()
+        
     if os.environ["AMBIENTE"] == "LOCAL":
         from visualyze import see_model
 
