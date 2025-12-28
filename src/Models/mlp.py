@@ -64,7 +64,7 @@ class MLP(LightningModule):
         rec = np.mean(rec) if isinstance(rec, np.ndarray) else float(rec)
         f1 = np.mean(f1) if isinstance(f1, np.ndarray) else float(f1)
 
-        self.log("val_loss", loss, prog_bar=True)
+        self.log("val_loss", loss, prog_bar=False)
         self.log("val_prec", float(prec), prog_bar=False)
         self.log("val_rec", float(rec), prog_bar=False)
         self.log("val_f1", float(f1), prog_bar=False)
