@@ -47,18 +47,20 @@ def main():
     ###------SEEDS---------###
     RAND_SEED = 42
     seed_everything(RAND_SEED)
+    AMBIENTE = os.environ["AMBIENTE"]
+    GPU = True if AMBIENTE in ["KAGGLE", "COLAB"] else False
     ## ----------VARIAVEIS TREINO-----------
     cpus = os.cpu_count()
     WORKERS = cpus if cpus is not None else 1
+    NUM_DEVICES = 1 if GPU else 1
+    NUM_NODES = 1
     BATCH_SIZE = 16
     EPOCHS = 20
     PATIENCE = 5
     #### -------- VARIAVEIS DE LOGGING ------------
     EXP_NAME = "stroke_1"
     RUN_NAME: str | None = None  # noma da RUN: pode ser aleatório ou definido
-    MLF_TRACK_URI = f"sqlite:///{PATH_DATASET}/mlflow.db"
-    AMBIENTE = os.environ["AMBIENTE"]
-    GPU = True if AMBIENTE in ["KAGGLE", "COLAB"] else False
+    MLF_TRACK_URI = f"sqlite:///{PATH_CODE}/mlflow.db"
 
     mlflow.set_tracking_uri(MLF_TRACK_URI)
     mlflow.set_experiment(EXP_NAME)
@@ -96,8 +98,9 @@ def main():
 
         trainer = Trainer(
             max_epochs=EPOCHS,
-            devices=-1 if GPU else 1,
+            devices=NUM_DEVICES,
             accelerator="gpu" if GPU else "cpu",
+            num_nodes=NUM_NODES,
             # enable_autolog_hparams=True,
             logger=mlflow_logger,
             enable_checkpointing=False,
@@ -107,7 +110,7 @@ def main():
         mlflow.log_params(dict(model.hparams))
 
     NAME_RESZIP = f"resultado_kaggle_{EXP_NAME}"
-    MLRUNS_FOLDER = PATH_DATASET / "mlruns"
+    MLRUNS_FOLDER = Path.cwd() / "mlruns"
     zip_res(MLF_TRACK_URI, MLRUNS_FOLDER, NAME_RESZIP)
     print("\n", "=" * 60)
     print(f"RESULTADOS ZIPADOS {Path(NAME_RESZIP).resolve()}")
