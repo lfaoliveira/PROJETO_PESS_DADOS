@@ -13,17 +13,17 @@ class StrokeDataModule(LightningDataModule):
 
     # preparacao dos dados
     def prepare_data(self):
-        #NOTE: cuidado para nao carregar dados pesados demais na memoria (estoura memoria da GPU!!!)
+        # NOTE: cuidado para nao carregar dados pesados demais na memoria (estoura memoria da GPU!!!)
         self.dataset = StrokeDataset()
 
-    # setup de transformacao e augmentation 
+    # setup de transformacao e augmentation
     def setup(self, stage=None):
         DATA_SPLIT = [0.8, 0.2]
         data, label = self.dataset[0]
         self.input_dims = data.shape[0]
         self.stroke_train, self.stroke_val = random_split(self.dataset, DATA_SPLIT)
 
-    def train_dataloader(self):
+    def train_dataloader(self, BATCH_SIZE: int | None = None):
         train_loader = DataLoader(
             self.stroke_train,
             batch_size=self.BATCH_SIZE,
@@ -32,7 +32,7 @@ class StrokeDataModule(LightningDataModule):
         )
         return train_loader
 
-    def val_dataloader(self):
+    def val_dataloader(self, BATCH_SIZE: int | None = None):
         val_loader = DataLoader(
             self.stroke_val,
             batch_size=self.BATCH_SIZE,

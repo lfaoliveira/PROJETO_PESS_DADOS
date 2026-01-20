@@ -48,9 +48,9 @@ def main():
     ###------SEEDS---------###
     RAND_SEED = 42
     seed_everything(RAND_SEED)
+    ## ----------VARIAVEIS TREINO-----------
     AMBIENTE = os.environ["AMBIENTE"]
     GPU = True if AMBIENTE in ["KAGGLE", "COLAB"] else False
-    ## ----------VARIAVEIS TREINO-----------
     cpus = os.cpu_count()
     WORKERS = cpus if cpus is not None else 1
     NUM_DEVICES = 1 if GPU else 1
