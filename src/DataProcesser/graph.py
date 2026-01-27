@@ -3,8 +3,7 @@ from matplotlib import pyplot as plt
 import mlflow
 import pandas as pd
 
-
-def plot_metrics(axes, choice: str, run_id: str, output_dir: Path):
+def plot_metrics(axes, choice: str, run_id: str, output_dir: Path, plot_best: bool):
     """
     PLots metrics into axes
 
@@ -34,7 +33,6 @@ def plot_metrics(axes, choice: str, run_id: str, output_dir: Path):
     plt.savefig(output_dir / f"metrics_{choice}_run_{run_id[:10]}.png", dpi=300)
     plt.show()
     plt.close()
-
 
 def grab_values(
     axes, available_metrics: list, client: mlflow.MlflowClient, run_id: str
@@ -122,7 +120,7 @@ def train_metrics(models: list, output_dir: Path):
                 if skip:
                     continue
 
-                plot_metrics(axes, choice, str(idx), output_dir)
+                plot_metrics(axes, choice, str(idx), output_dir, plot_best)
 
             print(f"Graphs exported to: {output_dir}")
         else:
