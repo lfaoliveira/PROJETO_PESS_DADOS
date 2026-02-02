@@ -2,9 +2,8 @@
 from torch import optim
 import torch.nn as nn
 import torch
-from sklearn.metrics import precision_recall_fscore_support
-import numpy as np
 from Models.interface import ClassificationModel
+from Models.utils import calc_metrics
 
 
 class MLP(ClassificationModel):
@@ -57,20 +56,14 @@ class MLP(ClassificationModel):
         labels = torch.squeeze(labels.long())
 
         loss = nn.functional.cross_entropy(logits, labels)
-        prec, rec, f1, support = precision_recall_fscore_support(
-            labels.numpy(force=True),
-            torch.argmax(logits, dim=1).numpy(force=True),
-            zero_division=0,
-        )
 
-        prec = np.mean(prec) if isinstance(prec, np.ndarray) else float(prec)
-        rec = np.mean(rec) if isinstance(rec, np.ndarray) else float(rec)
-        f1 = np.mean(f1) if isinstance(f1, np.ndarray) else float(f1)
+        f_beta, prec, rec, roc_auc = calc_metrics(labels, logits)
 
         self.log("val_loss", loss, prog_bar=False)
         self.log("val_prec", float(prec), prog_bar=False)
         self.log("val_rec", float(rec), prog_bar=False)
-        self.log("val_f1", float(f1), prog_bar=False)
+        self.log("val_f_beta", float(f_beta), prog_bar=False)
+        self.log("val_roc_auc", float(roc_auc), prog_bar=False)
         return loss
 
     def configure_optimizers(self):
