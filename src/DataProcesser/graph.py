@@ -77,13 +77,13 @@ def grab_values(
 
     for metric_name in loss_metrics:
         current_metric_dict = metrics_dict[metric_name]
-        steps, values = current_metric_dict.items()
+        steps, values = current_metric_dict.keys(), current_metric_dict.values()
         axes[0].plot(steps, values, marker="o", label=metric_name)
 
     # Plot accuracy/f1 metrics
     for metric_name in eval_metrics:
         current_metric_dict = metrics_dict[metric_name]
-        steps, values = current_metric_dict.items()
+        steps, values = current_metric_dict.keys(), current_metric_dict.values()
         axes[1].plot(steps, values, marker="o", label=metric_name)
 
     return metrics_dict
