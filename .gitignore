@@ -214,3 +214,4 @@ mlflow.db
 stroke.csv
 **resultado**
 .install_complete
+outputs/

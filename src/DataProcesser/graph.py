@@ -4,7 +4,7 @@ import mlflow
 import pandas as pd
 
 
-def plot_metrics(axes, choice: str, run_id: str, output_dir: Path, plot_best: bool):
+def plot_metrics(axes, choice: str, run_id: str, output_dir: Path):
     """
     PLots metrics into axes
 
@@ -175,82 +175,66 @@ def grab_values(
 
 
 def train_metrics(models: list, output_dir: Path):
+    """
+    Generate metrics and plots for trained models
+
+    :param models: List of model names to analyze
+    :param output_dir: Directory to save plots
+    :return: DataFrame with model metrics comparison
+    """
     import os
 
-    # wether to plot only the best training
-    plot_best = bool(os.environ.get("OPTUNA", None))
-
-    # Store metrics for all models
+    is_optuna = bool(os.environ.get("OPTUNA", False))
     all_models_metrics = []
+    output_dir.mkdir(exist_ok=True)
 
     for choice in models:
-        # Get the most recent experiment
         experiment = mlflow.get_experiment_by_name(f"stroke_{choice}_1")
-        if experiment:
-            # Get all runs from the experiment
-
-            runs = pd.DataFrame(
-                mlflow.search_runs(experiment_ids=[experiment.experiment_id])
-            )
-            assert isinstance(runs, pd.DataFrame)
-
-            output_dir.mkdir(exist_ok=True)
-
-            model_metrics = {"model": choice}
-
-            # Store all runs metrics for this model (for combined plot)
-            all_runs_metrics_dict = {}
-
-            # Plot metrics for each run
-            for idx, run_id in enumerate(runs["run_id"]):
-                client = mlflow.MlflowClient()
-                # Get all available metrics for this run
-                run = client.get_run(run_id)
-                available_metrics = list(run.data.metrics.keys())
-
-                # ALWAYS grab values regardless of condition - store step-wise metrics
-                run_metrics_dict = grab_values(None, available_metrics, client, run_id)
-
-                # Store this run's metrics for the combined plot
-                all_runs_metrics_dict[run_id] = run_metrics_dict
-
-                # Create individual plots only if there are loss metrics to plot
-                if run_metrics_dict and any(
-                    "loss" in m.lower() for m in run_metrics_dict.keys()
-                ):
-                    fig, axes = plt.subplots(2, 1, figsize=(10, 8))
-                    # Re-run grab_values with axes to plot
-                    grab_values(axes, available_metrics, client, run_id)
-
-                    # Calculate averages for each metric
-                    for metric_name, steps_values in run_metrics_dict.items():
-                        values = list(steps_values.values())
-                        model_metrics[f"{metric_name}_avg"] = sum(values) / len(values)
-
-                    plot_metrics(axes, choice, str(idx), output_dir, plot_best)
-                else:
-                    # Still calculate averages even if no plot
-                    for metric_name, steps_values in run_metrics_dict.items():
-                        values = list(steps_values.values())
-                        if values:
-                            model_metrics[f"{metric_name}_avg"] = sum(values) / len(
-                                values
-                            )
-
-            # Plot all runs on a single graph for this model
-            if all_runs_metrics_dict:
-                plot_all_runs_per_model(all_runs_metrics_dict, choice, output_dir)
-
-            if plot_best:
-                prefix = os.environ["OPTUNA_BEST_RUN_PREFIX"]
-                run_name = f"{prefix}_{choice}"
-                runs = runs[runs["tags.mlflow.runName"] == run_name]
-                assert len(runs) == 1
-
-            all_models_metrics.append(model_metrics)
-            print(f"Graphs exported to: {output_dir}")
-        else:
+        if not experiment:
             print(f"Experiment 'stroke_{choice}_1' not found")
+            continue
 
-    # Create DataFrame with models as rows and metrics as columns
+        # Get all runs from the experiment
+        runs = pd.DataFrame(
+            mlflow.search_runs(experiment_ids=[experiment.experiment_id])
+        )
+        assert isinstance(runs, pd.DataFrame)
+
+        model_metrics = {"model": choice}
+        all_runs_metrics_dict = {}
+        client = mlflow.MlflowClient()
+
+        # Process each run
+        for idx, run_id in enumerate(runs["run_id"]):
+            run = client.get_run(run_id)
+            available_metrics = list(run.data.metrics.keys())
+
+            # Collect step-wise metrics for this run
+            run_metrics_dict = grab_values(None, available_metrics, client, run_id)
+            all_runs_metrics_dict[run_id] = run_metrics_dict
+
+            # Calculate metric averages
+            for metric_name, steps_values in run_metrics_dict.items():
+                values = list(steps_values.values())
+                if values:
+                    model_metrics[f"{metric_name}_avg"] = sum(values) / len(values)
+
+            # Plot individual runs only when NOT using Optuna
+            if (
+                not is_optuna
+                and run_metrics_dict
+                and any("loss" in m.lower() for m in run_metrics_dict.keys())
+            ):
+                print(is_optuna)
+                fig, axes = plt.subplots(2, 1, figsize=(10, 8))
+                grab_values(axes, available_metrics, client, run_id)
+                plot_metrics(axes, choice, str(idx), output_dir)
+
+        # Always plot combined view for all runs
+        if all_runs_metrics_dict:
+            plot_all_runs_per_model(all_runs_metrics_dict, choice, output_dir)
+
+        all_models_metrics.append(model_metrics)
+        print(f"Graphs exported to: {output_dir}")
+
     return pd.DataFrame(all_models_metrics).set_index("model")

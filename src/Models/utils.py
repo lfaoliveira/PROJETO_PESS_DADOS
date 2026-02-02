@@ -4,7 +4,6 @@ import torch
 
 
 def calc_metrics(labels: torch.Tensor, logits: torch.Tensor):
-    
     prec, rec, f_beta, support = precision_recall_fscore_support(
         labels.numpy(force=True),
         torch.argmax(logits, dim=1).numpy(force=True),
@@ -17,6 +16,7 @@ def calc_metrics(labels: torch.Tensor, logits: torch.Tensor):
     f_beta = np.mean(f_beta) if isinstance(f_beta, np.ndarray) else float(f_beta)
     # Calculate ROC-AUC for binary classification
     probabilities = torch.softmax(logits, dim=1).numpy(force=True)
-    roc_auc = roc_auc_score(labels.numpy(force=True), probabilities[:, 1])
+    # NOTE: disabling ROC for now (need to adapt to binary classes)
+    # roc_auc = roc_auc_score(labels.numpy(force=True), probabilities[:, 1])
 
     return f_beta, prec, rec, roc_auc
