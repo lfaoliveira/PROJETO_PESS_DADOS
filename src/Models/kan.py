@@ -25,7 +25,7 @@ class MyKan(ClassificationModel):
         width_arr.insert(0, input_dim)
         width_arr.append(num_classes)
         self.model = KAN(
-            width=width_arr, grid=12, k=5, symbolic_enabled=False, auto_save=False
+            width=width_arr, grid=5, k=5, symbolic_enabled=False, auto_save=False
         )
 
         self.example_input_array = torch.zeros(1, input_dim, dtype=torch.float32)
