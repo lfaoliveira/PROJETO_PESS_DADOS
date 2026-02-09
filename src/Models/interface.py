@@ -13,3 +13,6 @@ class ClassificationModel(LightningModule):
 
     def forward(self, x):
         raise NotImplementedError("forward must be implemented")
+
+    def test_step(self, batch, batch_idx, output_df, test_dataset):
+        raise NotImplementedError("forward must be implemented")

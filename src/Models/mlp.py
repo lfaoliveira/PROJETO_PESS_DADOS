@@ -1,4 +1,6 @@
 ##codigo dos modelos
+import numpy as np
+import pandas as pd
 from torch import optim
 import torch.nn as nn
 import torch
@@ -78,3 +80,50 @@ class MLP(ClassificationModel):
 
     def forward(self, x) -> torch.Tensor:
         return self.model(x)
+
+    def test_step(
+        self,
+        batch: tuple[torch.Tensor, torch.Tensor],
+        batch_idx: int,
+        output_df: pd.DataFrame,
+        test_dataset: torch.utils.data.Subset,
+    ):
+        data, labels = batch
+        logits = self.model(data)
+        labels = torch.squeeze(labels.long())
+        predictions = torch.argmax(logits, dim=1)
+
+        results = np.empty(predictions.shape[0], dtype=np.dtype("U4"))
+
+        # Get dataset indices from the Subset's indices attribute
+        start_idx = batch_idx * data.shape[0]
+        end_idx = start_idx + data.shape[0]
+        dataset_indices = test_dataset.indices[start_idx:end_idx]
+
+        for i in range(predictions.shape[0]):
+            if predictions[i] == 1 and labels[i] == 1:
+                results[i] = "TP"
+            elif predictions[i] == 1 and labels[i] == 0:
+                results[i] = "FP"
+            elif predictions[i] == 0 and labels[i] == 1:
+                results[i] = "FN"
+            else:
+                results[i] = "TN"
+
+        # Get original untransformed data
+        original_data = [
+            test_dataset.dataset.original_df.iloc[idx] for idx in dataset_indices
+        ]
+
+        batch_results = pd.DataFrame(
+            {
+                "dataset_indices": dataset_indices,
+                "predictions": predictions.numpy(force=True),
+                "labels": labels.numpy(force=True),
+                "diagnostic": results,
+                "original_data": original_data,
+            }
+        )
+        output_df = pd.concat([output_df, batch_results], ignore_index=True)
+
+        return output_df

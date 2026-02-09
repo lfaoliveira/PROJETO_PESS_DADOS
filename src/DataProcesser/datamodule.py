@@ -40,3 +40,13 @@ class StrokeDataModule(LightningDataModule):
             persistent_workers=True,
         )
         return val_loader
+
+    def test_dataloader(self, BATCH_SIZE: int | None = None):
+        """Dataloader de teste"""
+        test_loader = DataLoader(
+            self.stroke_val,
+            batch_size=self.BATCH_SIZE,
+            num_workers=self.WORKERS,
+            persistent_workers=True,
+        )
+        return test_loader, self.stroke_val
