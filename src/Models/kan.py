@@ -1,4 +1,5 @@
 ##codigo dos modelos
+from typing import Any
 from torch import optim
 import torch.nn as nn
 import torch
@@ -10,22 +11,32 @@ from Models.utils import calc_metrics
 
 
 class MyKan(ClassificationModel):
+    hyperparams: dict[str, float | int]
+
     def __init__(
         self,
         input_dim: int,
         hidden_dims: int,
         n_layers: int,
         num_classes: int,
-        **kwargs,
+        **kwargs: dict[str, Any],
     ):
         super().__init__()
-        self.hyperparams: dict[str, float | int] = kwargs.get("hyperparameters", {})
+        self.hyperparams = kwargs.get("hyperparameters", {})
 
         width_arr: list[int] = [hidden_dims for _ in range(n_layers)]
         width_arr.insert(0, input_dim)
         width_arr.append(num_classes)
+
+        grid = int(self.hyperparams.get("grid", 12))
+        spline_pol_order = int(self.hyperparams.get("spline_pol_order", 5))
+
         self.model = KAN(
-            width=width_arr, grid=5, k=5, symbolic_enabled=False, auto_save=False
+            width=width_arr,
+            grid=grid,
+            k=spline_pol_order,
+            symbolic_enabled=False,
+            auto_save=False,
         )
 
         self.example_input_array = torch.zeros(1, input_dim, dtype=torch.float32)
