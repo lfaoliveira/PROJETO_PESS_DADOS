@@ -23,7 +23,7 @@ def see_model(database: pathlib.Path, folder: pathlib.Path):
 
 if __name__ == "__main__":
     PATH_RES_ZIPADO = Path(
-        "C:\\Users\\LUIS FELIPE\\Desktop\\PROJETO_PESS_DADOS\\resultado_kaggle (1).zip"
+        "C:\\Users\\LUIS FELIPE\\Desktop\\STROKE_PREDICTION\\resultado_kaggle (1).zip"
     )
     DIR = Path(Path.cwd(), PATH_RES_ZIPADO.name.replace(".zip", ""))
     print(f"DIR: {DIR}")
