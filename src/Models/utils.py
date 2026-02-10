@@ -1,6 +1,9 @@
 import numpy as np
+import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support, roc_auc_score
 import torch
+
+from Models.interface import ClassificationModel
 
 
 def calc_metrics(labels: torch.Tensor, logits: torch.Tensor):
@@ -21,3 +24,73 @@ def calc_metrics(labels: torch.Tensor, logits: torch.Tensor):
     roc_auc = 0
 
     return f_beta, prec, rec, roc_auc
+
+
+def analyse_test(
+    model: torch.nn.Module,
+    batch: tuple[torch.Tensor, torch.Tensor],
+    batch_idx: int,
+    output_df: pd.DataFrame,
+    test_dataset: torch.utils.data.Subset,
+):
+    data, labels = batch
+    logits = model(data)
+    labels = torch.squeeze(labels.long())
+    predictions = torch.argmax(logits, dim=1)
+
+    # 1. Obter os índices reais do dataset original
+    start_idx = batch_idx * data.shape[0]
+    end_idx = start_idx + data.shape[0]
+    dataset_indices = test_dataset.indices[start_idx:end_idx]
+
+    # 2. Vetorização do Diagnóstico (Muito mais rápido que o loop for)
+    # Convertemos para numpy para facilitar a lógica de condições
+    preds_np = predictions.numpy(force=True)
+    labels_np = labels.numpy(force=True)
+
+    conditions = [
+        (preds_np == 1) & (labels_np == 1),  # TP
+        (preds_np == 1) & (labels_np == 0),  # FP
+        (preds_np == 0) & (labels_np == 1),  # FN
+        (preds_np == 0) & (labels_np == 0),  # TN
+    ]
+    choices = ["TP", "FP", "FN", "TN"]
+    results = np.select(conditions, choices, default="ERROR")
+    print(f"CLASSIFY RESULTS: {results}")
+
+    # 3. Extrair as colunas originais e resetar o índice para alinhar no concat
+    # Isso garante que todas as colunas do original_df sejam incluídas
+    original_rows = test_dataset.dataset.original_df.iloc[dataset_indices].reset_index(
+        drop=True
+    )
+
+    # 4. Criar o DataFrame de métricas do modelo
+    metrics_df = pd.DataFrame(
+        {
+            "dataset_indices": dataset_indices,
+            "predictions": preds_np,
+            "labels": labels_np,
+            "diagnostic": results,
+        }
+    )
+
+    # 5. Concatenar horizontalmente (axis=1) para unir métricas e dados originais
+    # Como ambos têm o mesmo número de linhas e índices resetados, o alinhamento é perfeito
+    batch_results = pd.concat([metrics_df, original_rows], axis=1)
+
+    # 6. Set pred and error columns for all indexes of the batch in output_df
+    # Build a DataFrame aligned by the original dataset indices so insertion
+    # uses index alignment instead of positional assignment
+    batch_metrics_df = pd.DataFrame(
+        {"pred": preds_np, "error": results}, index=pd.Index(dataset_indices)
+    )
+
+    # Ensure the columns exist in output_df so DataFrame.update can modify them
+    for col in batch_metrics_df.columns:
+        if col not in output_df.columns:
+            output_df[col] = pd.NA
+
+    # Update in place using alignment by index and column names
+    output_df.update(batch_metrics_df)
+
+    return output_df
