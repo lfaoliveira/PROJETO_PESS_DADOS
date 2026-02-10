@@ -88,6 +88,6 @@ class MLP(ClassificationModel):
         output_df: pd.DataFrame,
         test_dataset: torch.utils.data.Subset,
     ):
-        analyse_test(self.model, batch,batch_idx,output_df, test_dataset)
+        analyse_test(self.model, batch, batch_idx, output_df, test_dataset)
 
-        return 
+        return output_df

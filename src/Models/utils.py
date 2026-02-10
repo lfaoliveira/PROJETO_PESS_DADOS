@@ -56,7 +56,7 @@ def analyse_test(
     ]
     choices = ["TP", "FP", "FN", "TN"]
     results = np.select(conditions, choices, default="ERROR")
-    print(f"CLASSIFY RESULTS: {results}")
+    # print(f"CLASSIFY RESULTS: {results}")
 
     # 3. Extrair as colunas originais e resetar o índice para alinhar no concat
     # Isso garante que todas as colunas do original_df sejam incluídas
