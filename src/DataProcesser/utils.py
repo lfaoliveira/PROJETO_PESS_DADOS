@@ -1,8 +1,11 @@
 from pathlib import Path
+from typing import Literal
 import mlflow
 import pandas as pd
 
 from DataProcesser.graph import plot_all_runs_per_model, plot_single_run
+from DataProcesser.result_processer import ResultsProcesser
+from Models.error_model import ErrorModel
 
 
 # Data Processing Functions
@@ -58,11 +61,19 @@ def _calculate_metric_averages(
     return averages
 
 
-def residual_analysis():
-    pass
+def residual_analysis(
+    name: str, prediction_df: pd.DataFrame, processer: ResultsProcesser
+):
+    error_model = ErrorModel(prediction_df)
+    processer.update(name, error_model, prediction_df)
 
 
-def final_analysis(models: list, output_dir: Path, residual=True) -> pd.DataFrame:
+def final_analysis(
+    models: list,
+    output_dir: Path,
+    sort_metric: Literal["val_f_beta_avg", "val_f1_avg", "val_loss_avg"],
+    residual=True,
+) -> tuple[pd.DataFrame, ResultsProcesser]:
     """Generate metrics and plots for trained models."""
     import os
 
@@ -70,6 +81,8 @@ def final_analysis(models: list, output_dir: Path, residual=True) -> pd.DataFram
     all_models_metrics = []
     output_dir.mkdir(exist_ok=True)
     client = mlflow.MlflowClient()
+
+    processer = ResultsProcesser()
 
     for choice in models:
         experiment = mlflow.get_experiment_by_name(f"stroke_{choice}_1")
@@ -89,21 +102,37 @@ def final_analysis(models: list, output_dir: Path, residual=True) -> pd.DataFram
         for idx, run_id in enumerate(runs["run_id"]):
             run = client.get_run(run_id)
             available_metrics = list(run.data.metrics.keys())
-
             # Collect metrics
             run_metrics_dict = _grab_values(available_metrics, client, run_id)
             all_runs_metrics_dict[run_id] = run_metrics_dict
-
             # Calculate averages
             averages = _calculate_metric_averages(run_metrics_dict)
+
+            # Inject averages into the runs DataFrame
+            for metric_name, avg_value in averages.items():
+                runs.loc[runs["run_id"] == run_id, f"metrics.{metric_name}"] = avg_value
+
             model_metrics.update(averages)
 
             # Plot individual runs only when NOT using Optuna
             if not is_optuna and run_metrics_dict:
                 plot_single_run(run_metrics_dict, choice, str(idx), output_dir)
 
-        if residual:
-            residual_analysis()
+        # armazena modelos de erro e dataframe
+        if residual and not runs.empty:
+            ascending = "loss" in sort_metric
+            best_run = runs.sort_values(
+                f"metrics.{sort_metric}", ascending=ascending
+            ).iloc[0]
+
+            test_df_path = os.environ["TEST_DF_PATH"]
+
+            # Pass the loaded model to your analysis function
+            df_path = mlflow.artifacts.download_artifacts(
+                artifact_path=test_df_path, run_id=best_run.run_id
+            )
+            prediction_df = pd.read_csv(df_path)
+            residual_analysis(choice, prediction_df, processer)
 
         # Always plot combined view
         if all_runs_metrics_dict:
@@ -112,4 +141,4 @@ def final_analysis(models: list, output_dir: Path, residual=True) -> pd.DataFram
         all_models_metrics.append(model_metrics)
         print(f"Graphs exported to: {output_dir}")
 
-    return pd.DataFrame(all_models_metrics).set_index("model")
+    return pd.DataFrame(all_models_metrics).set_index("model"), processer
