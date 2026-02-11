@@ -1,6 +1,4 @@
 ## Model to fit on the errors of a prediction model and then be interpretable.
-from typing import Any
-
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
@@ -21,7 +19,7 @@ class ErrorModel:
 
     def split(self):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            self.X, self.y, test_size=0.2, random_state=42
+            self.X, self.y, test_size=0.2
         )
 
     def fit(self):
