@@ -7,11 +7,12 @@ from DataProcesser.dataset import ErrorModelDataset
 
 
 class ErrorModel:
-    def __init__(self, predictiosn_df: pd.DataFrame, **kwargs):
+    def __init__(self, predictions_df: pd.DataFrame, **kwargs):
         super().__init__()
         # NOTE: not setting random state since PyTorch Lightning's seed_everything function already does it
-        self.dataset = ErrorModelDataset(predictiosn_df)
+        self.dataset = ErrorModelDataset(predictions_df)
         self.X, self.y = self.dataset.data, self.dataset.labels
+        self.split()
         # usar parametros para overfit completo
         self.model = RandomForestClassifier(
             n_estimators=1000, max_depth=300, max_features="sqrt"
@@ -25,6 +26,8 @@ class ErrorModel:
     def fit(self):
         self.model.fit(self.X_train, self.y_train)
 
-    def predict(self):
+    def predict(self, log=False):
+
         predictions = self.model.predict(self.X_test)
-        print(classification_report(self.y_test, predictions))
+        if log:
+            print(classification_report(self.y_test, predictions))
