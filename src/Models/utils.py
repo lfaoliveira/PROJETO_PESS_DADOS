@@ -62,11 +62,6 @@ def analyse_test(
         {"pred": preds_np, "error": results}, index=pd.Index(dataset_indices)
     )
 
-    # Ensure the columns exist in output_df so DataFrame.update can modify them
-    for col in batch_metrics_df.columns:
-        if col not in output_df.columns:
-            output_df[col] = pd.NA
-
     # Update in place using alignment by index and column names
     output_df.update(batch_metrics_df)
 
