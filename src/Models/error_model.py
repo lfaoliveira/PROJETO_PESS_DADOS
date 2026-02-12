@@ -15,7 +15,7 @@ class ErrorModel:
         self.split()
         # usar parametros para overfit completo
         self.model = RandomForestClassifier(
-            n_estimators=1000, max_depth=300, max_features="sqrt"
+            n_estimators=50, max_depth=30, max_features="sqrt"
         )
 
     def split(self):

@@ -33,8 +33,8 @@ class MySchema(pa.DataFrameModel):
     avg_glucose_level: Series[float]
     bmi: Series[float]
     stroke: Series[int]
-    pred: Optional[Series[int]]
-    error: Optional[Series[str]]
+    # pred: Optional[Series[int]]
+    # error: Optional[Series[str]]
 
 
 class StrokeDataset(Dataset):
@@ -143,11 +143,12 @@ class ErrorModelDataset(Dataset):
 
     def clean_df(self, df: pd.DataFrame):
 
-        if self.OBJECTIVE_COL not in self.original_df.columns:
-            raise ValueError("SEM COLUNA OBJETIVO")
         # validate schema
         self.dataframe = MySchema.validate(df)
         self.original_df = MySchema.validate(df)
+
+        if self.OBJECTIVE_COL not in self.original_df.columns:
+            raise ValueError("SEM COLUNA OBJETIVO")
 
     def data_prep(self, bad_columns: list) -> None:
         """
@@ -163,7 +164,7 @@ class ErrorModelDataset(Dataset):
         # 2. Extract Labels before dropping columns
         # Ensure labels are numeric (LabelEncode them if they are strings)
         self.labels = np.asarray(
-            self.dataframe[self.OBJECTIVE_COL].values, dtype=np.float64
+            self.dataframe[self.OBJECTIVE_COL].values, dtype=np.dtype("U2")
         )
 
         # 3. Clean up the dataframe
