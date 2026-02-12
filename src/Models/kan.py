@@ -52,7 +52,7 @@ class KANSearchSpace(HyperParameterModel):
         # Search Space dict
         return {
             K.BATCH_SIZE: trial.suggest_categorical(K.BATCH_SIZE, [8, 16, 32, 64]),
-            K.HIDDEN_DIMS: trial.suggest_int(K.HIDDEN_DIMS, 2, 8, step=16),
+            K.HIDDEN_DIMS: trial.suggest_int(K.HIDDEN_DIMS, 2, 8, step=2),
             K.GRID: trial.suggest_categorical(K.GRID, [14, 19, 24, 29, 34, 40]),
             K.SPLINE_POL_ORDER: trial.suggest_categorical(
                 K.SPLINE_POL_ORDER, [3, 5, 7]
@@ -65,7 +65,6 @@ class KANSearchSpace(HyperParameterModel):
 
 
 class MyKan(ClassificationModel):
-
     def __init__(
         self,
         input_dim: int,

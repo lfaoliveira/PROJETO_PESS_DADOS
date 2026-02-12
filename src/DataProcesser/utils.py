@@ -74,7 +74,7 @@ def final_analysis(
     sort_metric: Literal["val_f_beta_avg", "val_f1_avg", "val_loss_avg"],
     residual=True,
 ) -> tuple[pd.DataFrame, ResultsProcesser]:
-    """Generate metrics and plots for trained models."""
+    """Generate metrics and plots for trained models. residual indicates wether to store basic residual analysis information for later use"""
     import os
 
     is_optuna = bool(os.environ.get("OPTUNA", False))
@@ -127,6 +127,7 @@ def final_analysis(
 
             # Get artifacts from the run and search for test_results_{run_id}.csv
             artifacts = client.list_artifacts(best_run.run_id)
+            print(f"ARTIFACT LIST: {artifacts}")
             test_results_file = f"test_results_{best_run.run_id}.csv"
             artifact_found = any(
                 artifact.path == test_results_file for artifact in artifacts

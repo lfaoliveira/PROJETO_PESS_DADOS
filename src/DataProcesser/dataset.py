@@ -129,11 +129,11 @@ class ErrorModelDataset(Dataset):
     def __init__(self, predictions_df: pd.DataFrame) -> None:
         super().__init__()
 
+        self.OBJECTIVE_COL = "error"
+        self.LABELS_COLUMN = "stroke"
         self.clean_df(predictions_df)
         STR_COL = list(CATEGORICAL_COLUMNS)
         self.data_prep(STR_COL)
-        self.OBJECTIVE_COL = "error"
-        self.LABELS_COLUMN = "stroke"
 
     def __getitem__(self, index: Tensor | list[int] | int):
         return self.data[index], self.labels[index]
