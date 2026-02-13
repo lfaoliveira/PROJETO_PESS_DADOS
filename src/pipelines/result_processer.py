@@ -1,12 +1,14 @@
 import pandas as pd
 
 from Models.error_model import ErrorModel
+from view.final import plot_classification_errors
 
 
 class ResultsProcesser:
-    """ Class that stores Error Model results and predictions dfs"""
+    """Class that stores Error Model results and predictions dfs"""
+
     analysis_models: dict[str, ErrorModel]
-    classifier_pred_df: dict[str, pd.DataFrame] 
+    classifier_pred_df: dict[str, pd.DataFrame]
 
     def __init__(
         self,
@@ -21,3 +23,10 @@ class ResultsProcesser:
     def fit_predict(self, name: str, log_predict=True):
         self.analysis_models[name].fit()
         self.analysis_models[name].predict(log_predict)
+
+    def view(
+        self,
+        name: str,
+    ):
+        df = self.classifier_pred_df[name]
+        plot_classification_errors(df, "stroke", "pred")

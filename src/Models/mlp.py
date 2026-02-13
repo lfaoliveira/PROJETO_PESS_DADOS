@@ -30,15 +30,15 @@ class MLPSearchSpace(HyperParameterModel):
         HIDDEN_DIMS = "hidn_dims"
         N_LAYERS = "n_layers"
 
-    def suggest(self, values_dict: dict[str, float | int]) -> dict[str, float | int]:
+    def suggest(self, values_dict: dict[Keys, float | int]) -> dict[str, float | int]:
         """
         Function to organize hyperparameter definition
 
-        :param values_dict: dictionary with hyperparameters defined
-        :type values_dict: dict[str, float | int]
+        :param values_dict: dictionary mapping Keys enum members to their values
         """
         K = self.Keys
-        hypers = {str(K(key)): value for key, value in values_dict.items()}
+        # Use K(key).value to ensure we return the string values defined in the Enum
+        hypers = {K(key).value: value for key, value in values_dict.items()}
         return hypers
 
     # 3. Suggestion Logic

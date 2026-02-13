@@ -30,7 +30,7 @@ class KANSearchSpace(HyperParameterModel):
         BATCH_SIZE = "batch_size"
         HIDDEN_DIMS = "hidn_dims"
 
-    def suggest(self, values_dict: dict[str, float | int]) -> dict[str, float | int]:
+    def suggest(self, values_dict: dict[Keys, float | int]) -> dict[str, float | int]:
         """
         Function to organize hyperparameter definition
 
