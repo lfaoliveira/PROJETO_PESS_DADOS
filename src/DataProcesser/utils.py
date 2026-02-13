@@ -56,7 +56,6 @@ def residual_analysis(
 ):
     # Get artifacts from the run and search for test_results_{run_id}.csv
     artifacts = client.list_artifacts(best_run.run_id)
-    print(f"ARTIFACT LIST: {artifacts}")
     test_results_file = f"test_results_{best_run.run_id}.csv"
     artifact_found = any(artifact.path == test_results_file for artifact in artifacts)
 
@@ -70,7 +69,8 @@ def residual_analysis(
     )
 
     prediction_df = pd.read_csv(df_path).dropna(how="any")
-    plot_classification_errors(prediction_df, "stroke", "pred")
+    if plot:
+        plot_classification_errors(prediction_df, "stroke", "pred")
     error_model = ErrorModel(prediction_df)
     processer.update(name, error_model, prediction_df)
 

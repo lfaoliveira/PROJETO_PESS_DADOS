@@ -120,11 +120,11 @@ class MLP(ClassificationModel):
 
         f_beta, prec, rec, roc_auc = calc_metrics(labels, logits, self.recall_factor)
 
-        self.log("val_loss", loss, prog_bar=False)
-        self.log("val_prec", float(prec), prog_bar=False)
-        self.log("val_rec", float(rec), prog_bar=False)
-        self.log("val_f_beta", float(f_beta), prog_bar=False)
-        self.log("val_roc_auc", float(roc_auc), prog_bar=False)
+        self.log("val_loss", loss, prog_bar=True, on_epoch=True)
+        self.log("val_prec", float(prec), prog_bar=False, on_epoch=True)
+        self.log("val_rec", float(rec), prog_bar=False, on_epoch=True)
+        self.log("val_f_beta", float(f_beta), prog_bar=False, on_epoch=True)
+        self.log("val_roc_auc", float(roc_auc), prog_bar=False, on_epoch=True)
         return loss
 
     def configure_optimizers(self):

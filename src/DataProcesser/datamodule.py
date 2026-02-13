@@ -24,18 +24,21 @@ class StrokeDataModule(LightningDataModule):
         self.stroke_train, self.stroke_val = random_split(self.dataset, DATA_SPLIT)
 
     def train_dataloader(self, BATCH_SIZE: int | None = None):
+        BATCH_SIZE = BATCH_SIZE if BATCH_SIZE else self.BATCH_SIZE
+
         train_loader = DataLoader(
             self.stroke_train,
-            batch_size=self.BATCH_SIZE,
+            batch_size=BATCH_SIZE,
             num_workers=self.WORKERS,
             persistent_workers=True,
         )
         return train_loader
 
     def val_dataloader(self, BATCH_SIZE: int | None = None):
+        BATCH_SIZE = BATCH_SIZE if BATCH_SIZE else self.BATCH_SIZE
         val_loader = DataLoader(
             self.stroke_val,
-            batch_size=self.BATCH_SIZE,
+            batch_size=BATCH_SIZE,
             num_workers=self.WORKERS,
             persistent_workers=True,
         )
@@ -43,9 +46,11 @@ class StrokeDataModule(LightningDataModule):
 
     def test_dataloader(self, BATCH_SIZE: int | None = None):
         """Dataloader de teste"""
+        # use passed argument, else use class value
+        BATCH_SIZE = BATCH_SIZE if BATCH_SIZE else self.BATCH_SIZE
         test_loader = DataLoader(
             self.stroke_val,
-            batch_size=self.BATCH_SIZE,
+            batch_size=BATCH_SIZE,
             num_workers=self.WORKERS,
             persistent_workers=True,
         )
