@@ -1,5 +1,5 @@
 from lightning.pytorch.core.datamodule import LightningDataModule
-from etl.dataset import StrokeDataset
+from DataProcesser.dataset import StrokeDataset
 from torch.utils.data import DataLoader, random_split
 
 
