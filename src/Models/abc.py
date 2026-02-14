@@ -49,16 +49,16 @@ class ClassificationModel(LightningModule):
             }
         )
 
-        self.test_metrics = MetricCollection(
-            {
-                "f_beta": MulticlassFBetaScore(
-                    num_classes=num_classes, beta=recall_factor, average="macro"
-                ),
-                "cm": ConfusionMatrix(task="binary", num_classes=num_classes),
-                "prec": MulticlassPrecision(num_classes=num_classes, average="macro"),
-                "rec": MulticlassRecall(num_classes=num_classes, average="macro"),
-            }
-        )
+        # self.test_metrics = MetricCollection(
+        #     {
+        #         "f_beta": MulticlassFBetaScore(
+        #             num_classes=num_classes, beta=recall_factor, average="macro"
+        #         ),
+        #         "cm": ConfusionMatrix(task="binary", num_classes=num_classes),
+        #         "prec": MulticlassPrecision(num_classes=num_classes, average="macro"),
+        #         "rec": MulticlassRecall(num_classes=num_classes, average="macro"),
+        #     }
+        # )
 
         self.save_hyperparameters()
 
@@ -103,7 +103,7 @@ class ClassificationModel(LightningModule):
         test_dataset: torch.utils.data.Subset,
     ):
         # We pass self.model to ensure we are testing the architecture
-        analyse_test(self.model, batch, batch_idx, output_df, test_dataset)
+        output_df = analyse_test(self.model, batch, batch_idx, output_df, test_dataset)
 
         return {"output_df": output_df}
 
