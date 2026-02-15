@@ -1,79 +1,52 @@
 import numpy as np
 import pandas as pd
 import torch
-# from torchmetrics.classification import (
-#     MulticlassAUROC,
-#     MulticlassFBetaScore,
-#     MulticlassPrecision,
-#     MulticlassRecall,
-# )
+from typing import cast
 
-
-# def calc_metrics(
-#     labels: torch.Tensor, logits: torch.Tensor, recall_factor: float = 1.8
-# ) -> Tuple[float, float, float, float]:
-#     num_classes = logits.shape[1]
-#     device = logits.device
-
-#     # Initialize metrics
-#     precision_metric = MulticlassPrecision(num_classes=num_classes, average="macro").to(
-#         device
-#     )
-#     recall_metric = MulticlassRecall(num_classes=num_classes, average="macro").to(
-#         device
-#     )
-#     fbeta_metric = MulticlassFBetaScore(
-#         num_classes=num_classes, beta=recall_factor, average="macro"
-#     ).to(device)
-
-#     # Update and compute
-#     prec = precision_metric(logits, labels)
-#     rec = recall_metric(logits, labels)
-#     f_beta = fbeta_metric(logits, labels)
-
-
-#     return float(f_beta), float(prec), float(rec), float(roc_auc)
+from DataProcesser.dataset import StrokeDataset
 
 
 def analyse_test(
     model: torch.nn.Module,
-    batch: tuple[torch.Tensor, torch.Tensor],
-    batch_idx: int,
+    test_subset: torch.utils.data.Subset[StrokeDataset],
     output_df: pd.DataFrame,
-    test_dataset: torch.utils.data.Subset,
 ):
-    data, labels = batch
-    logits = model(data)
-    labels = torch.squeeze(labels.long())
-    predictions = torch.argmax(logits, dim=1)
+    """
+    Performs a one-pass analysis logic on the GPU.
+    """
+    device = next(model.parameters()).device
+    model.eval()
 
-    # 1. Obter os índices reais do dataset original
-    start_idx = batch_idx * data.shape[0]
-    end_idx = start_idx + data.shape[0]
-    dataset_indices = test_dataset.indices[start_idx:end_idx]
+    # Move data to GPU for fast inference
+    # Note: data and labels are assumed to be Tensors in the underlying dataset
+    indices = torch.tensor(test_subset.indices, device=device)
 
-    # 2. Vetorização do Diagnóstico (Muito mais rápido que o loop for)
-    # Convertemos para numpy para facilitar a lógica de condições
-    preds_np = predictions.numpy(force=True)
-    labels_np = labels.numpy(force=True)
+    dataset = cast(StrokeDataset, test_subset.dataset)
+    data = dataset.data[indices].to(device)
+    labels = dataset.labels[indices].to(device).long().squeeze()
 
-    conditions = [
-        (preds_np == 1) & (labels_np == 1),  # TP
-        (preds_np == 1) & (labels_np == 0),  # FP
-        (preds_np == 0) & (labels_np == 1),  # FN
-        (preds_np == 0) & (labels_np == 0),  # TN
-    ]
-    choices = ["TP", "FP", "FN", "TN"]
-    results = np.select(conditions, choices, default="ERROR")
+    with torch.no_grad():
+        logits = model(data)
+        preds = torch.argmax(logits, dim=1)
 
-    # 3. Set pred and error columns for all indexes of the batch in output_df
-    # Build a DataFrame aligned by the original dataset indices so insertion
-    # uses index alignment instead of positional assignment
-    batch_metrics_df = pd.DataFrame(
-        {"pred": preds_np, "error": results}, index=pd.Index(dataset_indices)
-    )
+    # 1. Compute result codes on GPU (TP=1, FP=2, FN=3, TN=4)
+    results_code = torch.zeros_like(preds, dtype=torch.uint8)
+    results_code[(preds == 1) & (labels == 1)] = 1
+    results_code[(preds == 1) & (labels == 0)] = 2
+    results_code[(preds == 0) & (labels == 1)] = 3
+    results_code[(preds == 0) & (labels == 0)] = 4
 
-    # Update in place using alignment by index and column names
-    output_df.update(batch_metrics_df)
+    # 2. Convert to CPU for DataFrame assignment
+    preds_np = preds.cpu().numpy()
+    codes_np = results_code.cpu().numpy()
 
-    return output_df
+    # Efficiently map codes to labels
+    code_map = {1: "TP", 2: "FP", 3: "FN", 4: "TN", 0: "ERROR"}
+    results_str = np.vectorize(code_map.get)(codes_np)
+
+    # 3. Batch assignment to the DataFrame
+    target_indices = list(test_subset.indices)
+    output_df.loc[target_indices, "pred"] = preds_np
+    output_df.loc[target_indices, "error"] = results_str
+
+    return output_df, logits, labels

@@ -49,16 +49,17 @@ class ClassificationModel(LightningModule):
             }
         )
 
-        # self.test_metrics = MetricCollection(
-        #     {
-        #         "f_beta": MulticlassFBetaScore(
-        #             num_classes=num_classes, beta=recall_factor, average="macro"
-        #         ),
-        #         "cm": ConfusionMatrix(task="binary", num_classes=num_classes),
-        #         "prec": MulticlassPrecision(num_classes=num_classes, average="macro"),
-        #         "rec": MulticlassRecall(num_classes=num_classes, average="macro"),
-        #     }
-        # )
+        self.test_metrics = MetricCollection(
+            {
+                "f_beta": MulticlassFBetaScore(
+                    num_classes=num_classes, beta=recall_factor, average="macro"
+                ),
+                "prec": MulticlassPrecision(num_classes=num_classes, average="macro"),
+                "rec": MulticlassRecall(num_classes=num_classes, average="macro"),
+                "auroc": MulticlassAUROC(num_classes=num_classes, average="macro"),
+                "cm": ConfusionMatrix(task="multiclass", num_classes=num_classes),
+            }
+        )
 
         self.save_hyperparameters()
 
@@ -86,24 +87,25 @@ class ClassificationModel(LightningModule):
         preds = logits.argmax(dim=-1)
         self.val_metrics.update(preds, labels)
 
-        self.log("val_loss", loss, on_epoch=True, prog_bar=True)
-        # NOTE: lightning automatically agregates metrics by MEAN when on_epoch=True.
-        self.log_dict(self.val_metrics, on_epoch=True, prog_bar=False)
+        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
+        # NOTE: When logging a MetricCollection or Metric object, Lightning automatically
+        # handles the compute() and reset() at the end of the epoch.
+        self.log_dict(self.val_metrics, on_step=False, on_epoch=True, prog_bar=False)
 
         return loss
 
-    def on_validation_epoch_end(self):
-        self.val_metrics.reset()
-
     def test_step(
         self,
-        batch: Tuple[torch.Tensor, torch.Tensor],
-        batch_idx: int,
-        output_df: pd.DataFrame,
         test_dataset: torch.utils.data.Subset,
-    ):
-        # We pass self.model to ensure we are testing the architecture
-        output_df = analyse_test(self.model, batch, batch_idx, output_df, test_dataset)
+        output_df: pd.DataFrame,
+    ) -> Dict[str, Any]:
+        """
+        One-pass test step that updates metrics and analysis DataFrame.
+        """
+        output_df, logits, labels = analyse_test(self.model, test_dataset, output_df)
+
+        # Store data into test_metrics (accumulate results)
+        self.test_metrics.update(logits, labels)
 
         return {"output_df": output_df}
 
