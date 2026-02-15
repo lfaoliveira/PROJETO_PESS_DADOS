@@ -41,11 +41,13 @@ class ClassificationModel(LightningModule):
 
         self.val_metrics = MetricCollection(
             {
-                "f_beta": MulticlassFBetaScore(
+                "val_f_beta": MulticlassFBetaScore(
                     num_classes=num_classes, beta=recall_factor, average="macro"
                 ),
-                "prec": MulticlassPrecision(num_classes=num_classes, average="macro"),
-                "rec": MulticlassRecall(num_classes=num_classes, average="macro"),
+                "val_prec": MulticlassPrecision(
+                    num_classes=num_classes, average="macro"
+                ),
+                "val_rec": MulticlassRecall(num_classes=num_classes, average="macro"),
             }
         )
 
@@ -103,7 +105,7 @@ class ClassificationModel(LightningModule):
         One-pass test step that updates metrics and analysis DataFrame.
         """
         output_df, logits, labels = analyse_test(self.model, test_dataset, output_df)
-
+        print(logits, "\n\n", labels)
         # Store data into test_metrics (accumulate results)
         self.test_metrics.update(logits, labels)
 

@@ -109,6 +109,7 @@ def final_analysis(
         for idx, run_id in enumerate(runs["run_id"]):
             run = client.get_run(run_id)
             available_metrics = list(run.data.metrics.keys())
+            print(available_metrics)
             # Collect metrics
             run_metrics_dict = _grab_values(available_metrics, client, run_id)
             all_runs_metrics_dict[run_id] = run_metrics_dict
