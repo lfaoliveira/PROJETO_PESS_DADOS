@@ -77,7 +77,7 @@ class MyKan(ClassificationModel):
         self.recall_factor = recall_factor
 
         # Define KAN width (typically much thinner than MLP)
-        # Using logic of hidden_dims // 16 for a thin KAN, to mantain model capacity equivalence
+        # Using logic of hidden_dims // 16 compared to an MLP Hidden dims, to mantain model capacity equivalence
         kan_width = int(self.hyperparams.get(self.search_space.HIDDEN_DIMS, 24))
         width_arr = [input_dim, kan_width, num_classes]
         spline_order = int(self.hyperparams.get(self.search_space.SPLINE_POL_ORDER, 3))

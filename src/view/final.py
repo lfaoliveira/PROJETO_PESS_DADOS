@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 import matplotlib.pyplot as plt
 
@@ -36,11 +37,9 @@ def plot_classification_errors(df: pd.DataFrame, target_col: str, pred_col: str)
     plt.figure(figsize=(10, 6))
     colors = ["#2ca02c", "#1f77b4", "#d62728", "#ff7f0e"]
     error_counts.plot(kind="bar", color=colors)
-
-    plt.title("Validation Error Analysis: Classification Outcomes")
-    plt.ylabel("Count")
-    plt.xlabel("Category")
-    plt.xticks(rotation=45)
-    plt.grid(axis="y", linestyle="--", alpha=0.7)
-    plt.tight_layout()
+    plt.clf()
+    cm = confusion_matrix(df[target_col], df[pred_col])
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot(cmap="Blues", ax=plt.gca())
+    plt.title("Confusion Matrix Analysis")
     plt.show()

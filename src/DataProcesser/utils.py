@@ -7,7 +7,7 @@ from view.final import plot_classification_errors
 from view.graph import plot_all_runs_per_model, plot_single_run
 from pipelines.result_processer import ResultsProcesser
 from Models.error_model import ErrorModel
-
+import os
 
 # Data Processing Functions
 def _grab_values(
@@ -40,12 +40,14 @@ def _calculate_metric_averages(
 ) -> dict[str, float]:
     """Calculate average values for all metrics."""
     averages = {}
+
     for metric_name, steps_values in metrics_dict.items():
         values = list(steps_values.values())
         if values:
             averages[f"{metric_name}_avg"] = sum(values) / len(values)
     return averages
 
+    
 
 def residual_analysis(
     client: mlflow.MlflowClient,
@@ -74,20 +76,26 @@ def residual_analysis(
     error_model = ErrorModel(prediction_df)
     processer.update(name, error_model, prediction_df)
 
+def metric_filter(metric_name: str, not_list: list[str]):
+    """Returns true if any unallowed string is in metric_name"""
+    allowed = all([(unallowed not in metric_name ) for unallowed in not_list])
+    return allowed
 
 def final_analysis(
     models: list,
     output_dir: Path,
     sort_metric: Literal["val_f_beta_avg", "val_f1_avg", "val_loss_avg"],
+    unwanted_metrics: list[str],
     residual=True,
 ) -> tuple[pd.DataFrame, ResultsProcesser]:
     """Generate metrics and plots for trained models. residual indicates wether to store basic residual analysis information for later use"""
-    import os
+    
 
     is_optuna = bool(os.environ.get("OPTUNA", False))
     all_models_metrics = []
     output_dir.mkdir(exist_ok=True)
     client = mlflow.MlflowClient()
+    
 
     processer = ResultsProcesser()
 
@@ -109,7 +117,7 @@ def final_analysis(
         for idx, run_id in enumerate(runs["run_id"]):
             run = client.get_run(run_id)
             available_metrics = list(run.data.metrics.keys())
-            print(available_metrics)
+            available_metrics= list(filter(lambda elem: metric_filter(elem, unwanted_metrics), available_metrics))
             # Collect metrics
             run_metrics_dict = _grab_values(available_metrics, client, run_id)
             all_runs_metrics_dict[run_id] = run_metrics_dict
