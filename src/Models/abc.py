@@ -126,4 +126,4 @@ class ClassificationModel(LightningModule):
         b1 = self.hyperparams.get(self.search_space.BETA1, 0.999)
         wd = self.hyperparams.get(self.search_space.WEIGHT_DECAY, 1e-5)
 
-        return optim.Adam(self.parameters(), lr=lr, betas=(b0, b1), weight_decay=wd)
+        return optim.AdamW(self.parameters(), lr=lr, betas=(b0, b1), weight_decay=wd)
