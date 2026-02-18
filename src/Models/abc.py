@@ -40,6 +40,7 @@ class ClassificationModel(LightningModule):
         self.search_space: Any = None
         self.model: nn.Module = nn.Identity()
 
+        # defines weight for class 0 and 1
         self.register_buffer(
             "class_weight",
             torch.tensor([1.0, recall_factor], dtype=torch.float32),
