@@ -7,4 +7,4 @@ Access at: ``LINK`` to see my analysis
 
 ## Install python (check https://www.python.org/downloads/)
 
-## Then run the Jupyter Notebook (main.ipynb) Sequentially to see the magic happen!
+## Then run the Jupyter Notebook (main.ipynb) sequentially to see the magic happen!
