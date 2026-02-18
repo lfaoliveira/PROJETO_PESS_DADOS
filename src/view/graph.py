@@ -42,25 +42,15 @@ def plot_single_run(
         axes[0].plot(epochs, values, marker="o", label=metric_name)
         all_loss_values.extend(values)
 
-    if all_loss_values:
-        axes[0].set_ylim(
-            np.percentile(all_loss_values, 5),
-            np.percentile(all_loss_values, 95),
-        )
+    axes[0].set_ylim(top=5.0)
 
     # Plot eval metrics
-    all_eval_values = []
     for metric_name in eval_metrics:
         epochs = list(metrics_dict[metric_name].keys())
         values = list(metrics_dict[metric_name].values())
         axes[1].plot(epochs, values, marker="o", label=metric_name)
-        all_eval_values.extend(values)
 
-    if all_eval_values:
-        axes[1].set_ylim(
-            np.percentile(all_eval_values, 5),
-            np.percentile(all_eval_values, 95),
-        )
+    axes[1].set_ylim(top=1.0)
 
     axes[0].set_xlabel("Epoch")
     axes[0].set_ylabel("Loss")
