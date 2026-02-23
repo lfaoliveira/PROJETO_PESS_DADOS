@@ -32,7 +32,11 @@ class ClassificationModel(LightningModule):
     class_weight: torch.Tensor
 
     def __init__(
-        self, input_dim: int, num_classes: int, recall_factor: float, **kwargs: Any
+        self,
+        input_dim: int,
+        num_classes: int,
+        recall_factor: list[float],
+        **kwargs: Any,
     ) -> None:
         super().__init__()
         self.recall_factor = recall_factor
@@ -43,7 +47,7 @@ class ClassificationModel(LightningModule):
         # defines weight for class 0 and 1
         self.register_buffer(
             "class_weight",
-            torch.tensor([1.0, recall_factor], dtype=torch.float32),
+            torch.tensor(recall_factor, dtype=torch.float32),
         )
 
         # NOTE: when working outside of lightning, MetricCollection needs a manual reset()

@@ -66,7 +66,7 @@ class MyKan(ClassificationModel):
         self,
         input_dim: int,
         num_classes: int,
-        recall_factor: float,
+        recall_factor: list[float],
         **kwargs: Any,
     ):
         super().__init__(input_dim, num_classes, recall_factor)
@@ -74,7 +74,6 @@ class MyKan(ClassificationModel):
         self.search_space = KANSearchSpace().Keys
         self.hyperparams = kwargs.get("hyperparameters", {})
 
-        self.recall_factor = recall_factor
 
         # Define KAN width (typically much thinner than MLP)
         # Using logic of hidden_dims // 16 compared to an MLP Hidden dims, to mantain model capacity equivalence

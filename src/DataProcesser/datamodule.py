@@ -19,22 +19,27 @@ class StrokeDataModule(LightningDataModule):
 
     # setup for transformation and augmentation
     def setup(self, stage=None):
-        DATA_SPLIT = [0.8, 0.2]
+        DATA_SPLIT = [0.7, 0.3]
+
         data, label = self.dataset[0]
         self.input_dims = data.shape[0]
         self.stroke_train, self.stroke_val = random_split(self.dataset, DATA_SPLIT)
 
+        train_labels = np.array([self.dataset[i][1] for i in self.stroke_train.indices])
+        class_counts = np.bincount(train_labels.astype(int))
+        n_classes = len(class_counts)
+        total_samples = len(train_labels)
+        class_weights = total_samples / (n_classes * class_counts)
+        self.sample_weights = class_weights[train_labels.astype(int)].tolist()
+
     def train_dataloader(self, BATCH_SIZE: int | None = None):
         BATCH_SIZE = BATCH_SIZE if BATCH_SIZE else self.BATCH_SIZE
 
-        # WeightedRandomSampler for minority class oversampling
-        train_labels = np.array([self.dataset[i][1] for i in self.stroke_train.indices])
-        class_counts = np.bincount(train_labels.astype(int))
-        class_weights = 1.0 / class_counts
-        sample_weights = class_weights[train_labels.astype(int)].tolist()
+        # -------disabling class weights on sampling to test in the loss
+        self.sample_weights = [1.0, 1.0]
         train_sampler = WeightedRandomSampler(
-            weights=sample_weights,
-            num_samples=len(sample_weights),
+            weights=self.sample_weights,
+            num_samples=len(self.sample_weights),
             replacement=True,
         )
         train_loader = DataLoader(

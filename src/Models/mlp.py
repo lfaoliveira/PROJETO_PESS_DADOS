@@ -62,7 +62,7 @@ class MLP(ClassificationModel):
         self,
         input_dim: int,
         num_classes: int,
-        recall_factor: float,
+        recall_factor: list[float],
         **kwargs,
     ):
         super().__init__(input_dim, num_classes, recall_factor)
@@ -70,7 +70,6 @@ class MLP(ClassificationModel):
         self.search_space = MLPSearchSpace().Keys
         self.hyperparams = kwargs.get("hyperparameters", {})
 
-        self.recall_factor = recall_factor
 
         hidden_dims = int(self.hyperparams.get(self.search_space.HIDDEN_DIMS, 256))
         n_layers = int(self.hyperparams.get(self.search_space.N_LAYERS, 4))
