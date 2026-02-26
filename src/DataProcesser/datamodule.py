@@ -30,8 +30,15 @@ class StrokeDataModule(LightningDataModule):
         n_classes = len(class_counts)
         total_samples = len(train_labels)
         class_weights = total_samples / (n_classes * class_counts)
-        self.class_weights = class_weights.tolist()               # shape [n_classes] – for loss weighting
-        self.sample_weights = class_weights[train_labels.astype(int)].tolist()  # shape [n_samples] – for sampler
+        self.class_weights = (
+            class_weights.tolist()
+        )  # shape [n_classes] – for loss weighting
+        # self.sample_weights = class_weights[
+        #     train_labels.astype(int)
+        # ].tolist()  # shape [n_samples] – for sampler
+        print(
+            f"CLASS WEIGHTS SHAPE: {len(self.class_weights)} SAMPLE WEIGHTS: {len(self.sample_weights)}"
+        )
 
     def train_dataloader(self, BATCH_SIZE: int | None = None):
         BATCH_SIZE = BATCH_SIZE if BATCH_SIZE else self.BATCH_SIZE
