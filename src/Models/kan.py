@@ -49,7 +49,7 @@ class KANSearchSpace(HyperParameterModel):
         # Search Space dict
         return {
             K.BATCH_SIZE: trial.suggest_categorical(K.BATCH_SIZE, [8, 16, 32, 64]),
-            K.HIDDEN_DIMS: trial.suggest_int(K.HIDDEN_DIMS, 32, 8, step=2),
+            K.HIDDEN_DIMS: trial.suggest_int(K.HIDDEN_DIMS, 32, 92, step=2),
             K.GRID: trial.suggest_categorical(K.GRID, [34, 40, 44, 60, 64, 68, 72, 74]),
             K.SPLINE_POL_ORDER: trial.suggest_categorical(
                 K.SPLINE_POL_ORDER, [3, 4, 5, 7, 9]
