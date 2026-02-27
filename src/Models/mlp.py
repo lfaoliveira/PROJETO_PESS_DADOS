@@ -48,12 +48,12 @@ class MLPSearchSpace(HyperParameterModel):
         # Search Space dict
         return {
             K.BATCH_SIZE: trial.suggest_categorical(K.BATCH_SIZE, [8, 16, 32, 64]),
-            K.HIDDEN_DIMS: trial.suggest_int(K.HIDDEN_DIMS, 16, 256, step=16),
-            K.LR: trial.suggest_float(K.LR, 1e-5, 1e-2, log=True),
+            K.HIDDEN_DIMS: trial.suggest_int(K.HIDDEN_DIMS, 524, 1024, step=16),
+            K.LR: trial.suggest_float(K.LR, 1e-7, 1e-2, log=True),
             K.WEIGHT_DECAY: trial.suggest_float(K.WEIGHT_DECAY, 1e-7, 1e-2, log=True),
             K.BETA0: trial.suggest_float(K.BETA0, 0.900, 0.9999),
             K.BETA1: trial.suggest_float(K.BETA1, 0.900, 0.9999),
-            K.N_LAYERS: trial.suggest_int(K.N_LAYERS, 4, 12),
+            K.N_LAYERS: trial.suggest_int(K.N_LAYERS, 40, 80),
         }
 
 

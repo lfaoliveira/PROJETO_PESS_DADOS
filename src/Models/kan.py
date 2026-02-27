@@ -49,12 +49,12 @@ class KANSearchSpace(HyperParameterModel):
         # Search Space dict
         return {
             K.BATCH_SIZE: trial.suggest_categorical(K.BATCH_SIZE, [8, 16, 32, 64]),
-            K.HIDDEN_DIMS: trial.suggest_int(K.HIDDEN_DIMS, 2, 8, step=2),
-            K.GRID: trial.suggest_categorical(K.GRID, [14, 19, 24, 29, 34, 40]),
+            K.HIDDEN_DIMS: trial.suggest_int(K.HIDDEN_DIMS, 32, 8, step=2),
+            K.GRID: trial.suggest_categorical(K.GRID, [34, 40, 44, 60, 64, 68, 72, 74]),
             K.SPLINE_POL_ORDER: trial.suggest_categorical(
-                K.SPLINE_POL_ORDER, [3, 5, 7]
+                K.SPLINE_POL_ORDER, [3, 4, 5, 7, 9]
             ),
-            K.LR: trial.suggest_float(K.LR, 1e-5, 1e-2, log=True),
+            K.LR: trial.suggest_float(K.LR, 1e-7, 1e-2, log=True),
             K.WEIGHT_DECAY: trial.suggest_float(K.WEIGHT_DECAY, 1e-7, 1e-2, log=True),
             K.BETA0: trial.suggest_float(K.BETA0, 0.900, 0.9999),
             K.BETA1: trial.suggest_float(K.BETA1, 0.900, 0.9999),
@@ -74,12 +74,11 @@ class MyKan(ClassificationModel):
         self.search_space = KANSearchSpace().Keys
         self.hyperparams = kwargs.get("hyperparameters", {})
 
-
         # Define KAN width (typically much thinner than MLP)
         # Using logic of hidden_dims // 16 compared to an MLP Hidden dims, to mantain model capacity equivalence
-        kan_width = int(self.hyperparams.get(self.search_space.HIDDEN_DIMS, 24))
+        kan_width = int(self.hyperparams.get(self.search_space.HIDDEN_DIMS, -1))
         width_arr = [input_dim, kan_width, num_classes]
-        spline_order = int(self.hyperparams.get(self.search_space.SPLINE_POL_ORDER, 3))
+        spline_order = int(self.hyperparams.get(self.search_space.SPLINE_POL_ORDER, -1))
         grid = int(self.hyperparams.get(self.search_space.GRID, 12))
 
         self.model = KAN(
