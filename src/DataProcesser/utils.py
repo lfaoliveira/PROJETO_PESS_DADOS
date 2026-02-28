@@ -94,8 +94,14 @@ def final_analysis(
     sort_metric: Literal["val_f_beta_avg", "val_f1_avg", "val_loss_avg"],
     unwanted_metrics: list[str],
     residual=True,
+    exp_name: str = "PROD_TRAINING",
 ) -> tuple[pd.DataFrame, ResultsProcesser]:
-    """Generate metrics and plots for trained models. residual indicates wether to store basic residual analysis information for later use"""
+    """Generate metrics and plots for trained models. residual indicates wether to store basic residual analysis information for later use.
+
+    Args:
+        exp_name: MLflow experiment name. All models' runs are expected in this single experiment,
+                  filtered by run name containing the model choice (e.g. 'PROD_MLP', 'PROD_KAN').
+    """
 
     is_optuna = bool(os.environ.get("OPTUNA", False))
     all_models_metrics = []
@@ -104,16 +110,30 @@ def final_analysis(
 
     processer = ResultsProcesser()
 
-    for choice in models:
-        experiment = mlflow.get_experiment_by_name(f"stroke_{choice}_1")
-        if not experiment:
-            print(f"Experiment 'stroke_{choice}_1' not found")
-            continue
+    experiment = mlflow.get_experiment_by_name(exp_name)
+    if not experiment:
+        print(f"Experiment '{exp_name}' not found")
+        return pd.DataFrame(), processer
 
-        runs = pd.DataFrame(
-            mlflow.search_runs(experiment_ids=[experiment.experiment_id])
-        )
-        assert isinstance(runs, pd.DataFrame)
+    all_experiment_runs = pd.DataFrame(
+        mlflow.search_runs(experiment_ids=[experiment.experiment_id])
+    )
+    assert isinstance(all_experiment_runs, pd.DataFrame)
+
+    for choice in models:
+        # Filter runs for this model by run name
+        if "tags.mlflow.runName" in all_experiment_runs.columns:
+            runs = all_experiment_runs[
+                all_experiment_runs["tags.mlflow.runName"].str.contains(
+                    choice, case=False, na=False
+                )
+            ].copy()
+        else:
+            runs = all_experiment_runs.copy()
+
+        if runs.empty:
+            print(f"No runs found for model '{choice}' in experiment '{exp_name}'")
+            continue
 
         model_metrics = {"model": choice}
         all_runs_metrics_dict = {}
