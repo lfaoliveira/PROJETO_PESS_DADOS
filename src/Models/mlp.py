@@ -71,8 +71,7 @@ class MLP(ClassificationModel):
         self.hyperparams = kwargs.get("hyperparameters", {})
 
         key = self.search_space.HIDDEN_DIMS.value
-        print(f"KEY: {key}")
-        print(f"HYPER: {self.hyperparams.keys()}")
+
         hidden_dims = int(self.hyperparams.get(key, -1))
 
         key = self.search_space.N_LAYERS.value
