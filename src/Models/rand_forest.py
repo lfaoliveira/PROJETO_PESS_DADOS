@@ -1,14 +1,21 @@
-from typing import Any, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import torch
 from sklearn.ensemble import RandomForestClassifier
 
-from Models.abc import ClassificationModel, HyperParameterModel
+from Models.abc import ClassificationModel, HyperParameterModel, SuperKeys
 
 
 class RandomForestHyperParameters(HyperParameterModel):
     """Hyperparameters for Random Forest model."""
+
+    class Keys(SuperKeys):
+        N_ESTIMATORS = "n_estimators"
+        MAX_DEPTH = "max_depth"
+        MIN_SAMPLES_SPLIT = "min_samples_split"
+        MIN_SAMPLES_LEAF = "min_samples_leaf"
+        MAX_FEATURES = "max_features"
 
     n_estimators: int = 100
     max_depth: int = 15
@@ -17,6 +24,59 @@ class RandomForestHyperParameters(HyperParameterModel):
     max_features: str = "sqrt"
     bootstrap: bool = True
     random_state: int = 42
+
+    def suggest(
+        self, values_dict: dict[str, float | int]
+    ) -> dict[str, float | int | str]:
+        """Apply suggested hyperparameters from values_dict."""
+        return {
+            self.Keys.N_ESTIMATORS.value: int(
+                values_dict.get(self.Keys.N_ESTIMATORS.value, self.n_estimators)
+            ),
+            self.Keys.MAX_DEPTH.value: int(
+                values_dict.get(self.Keys.MAX_DEPTH.value, self.max_depth)
+            ),
+            self.Keys.MIN_SAMPLES_SPLIT.value: int(
+                values_dict.get(
+                    self.Keys.MIN_SAMPLES_SPLIT.value, self.min_samples_split
+                )
+            ),
+            self.Keys.MIN_SAMPLES_LEAF.value: int(
+                values_dict.get(self.Keys.MIN_SAMPLES_LEAF.value, self.min_samples_leaf)
+            ),
+            self.Keys.MAX_FEATURES.value: str(
+                values_dict.get(self.Keys.MAX_FEATURES.value, self.max_features)
+            ),
+        }
+
+    def suggest_optuna(self, trial: Any = None) -> Dict[str, Any]:
+        """Suggest hyperparameters using Optuna trial."""
+        if trial is None:
+            return {
+                self.Keys.N_ESTIMATORS.value: self.n_estimators,
+                self.Keys.MAX_DEPTH.value: self.max_depth,
+                self.Keys.MIN_SAMPLES_SPLIT.value: self.min_samples_split,
+                self.Keys.MIN_SAMPLES_LEAF.value: self.min_samples_leaf,
+                self.Keys.MAX_FEATURES.value: self.max_features,
+            }
+
+        return {
+            self.Keys.N_ESTIMATORS.value: trial.suggest_int(
+                self.Keys.N_ESTIMATORS.value, 50, 300
+            ),
+            self.Keys.MAX_DEPTH.value: trial.suggest_int(
+                self.Keys.MAX_DEPTH.value, 5, 30
+            ),
+            self.Keys.MIN_SAMPLES_SPLIT.value: trial.suggest_int(
+                self.Keys.MIN_SAMPLES_SPLIT.value, 2, 10
+            ),
+            self.Keys.MIN_SAMPLES_LEAF.value: trial.suggest_int(
+                self.Keys.MIN_SAMPLES_LEAF.value, 1, 5
+            ),
+            self.Keys.MAX_FEATURES.value: trial.suggest_categorical(
+                self.Keys.MAX_FEATURES.value, ["sqrt", "log2"]
+            ),
+        }
 
 
 class RandomForestModel(ClassificationModel):
@@ -61,6 +121,7 @@ class RandomForestModel(ClassificationModel):
         self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
     ) -> torch.Tensor:
         """Training step - fit Random Forest on batch."""
+
         data, labels = batch
         x_numpy = data.cpu().detach().numpy()
         y_numpy = labels.cpu().detach().numpy().squeeze()
@@ -108,5 +169,3 @@ class RandomForestModel(ClassificationModel):
             np.log(predictions[np.arange(len(labels)), labels.astype(int)])
         )
         return float(ce_loss)
-
-

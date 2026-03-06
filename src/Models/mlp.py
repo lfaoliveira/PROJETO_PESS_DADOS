@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Any, Dict
 
 import optuna
@@ -6,7 +5,7 @@ import torch
 import torch.nn as nn
 from pydantic import ConfigDict
 
-from Models.abc import ClassificationModel, HyperParameterModel
+from Models.abc import ClassificationModel, HyperParameterModel, SuperKeys
 
 
 class MLPSearchSpace(HyperParameterModel):
@@ -17,7 +16,7 @@ class MLPSearchSpace(HyperParameterModel):
     model_config = ConfigDict(use_enum_values=True, arbitrary_types_allowed=True)
 
     # Internal Enumerator
-    class Keys(str, Enum):
+    class Keys(SuperKeys):
         LR = "lr"
         BETA0 = "beta0"
         BETA1 = "beta1"

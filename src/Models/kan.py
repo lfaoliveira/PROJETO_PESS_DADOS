@@ -1,12 +1,11 @@
-from enum import Enum
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import optuna
 import torch
 from kan import KAN
 from pydantic import ConfigDict
 
-from Models.abc import ClassificationModel, HyperParameterModel
+from Models.abc import ClassificationModel, HyperParameterModel, SuperKeys
 
 
 class KANSearchSpace(HyperParameterModel):
@@ -17,7 +16,7 @@ class KANSearchSpace(HyperParameterModel):
     model_config = ConfigDict(use_enum_values=True, arbitrary_types_allowed=True)
 
     # Internal Enumerator
-    class Keys(str, Enum):
+    class Keys(SuperKeys):
         GRID = "grid"
         SPLINE_POL_ORDER = "spline_pol_order"
         LR = "lr"
@@ -27,7 +26,9 @@ class KANSearchSpace(HyperParameterModel):
         BATCH_SIZE = "batch_size"
         HIDDEN_DIMS = "hidn_dims"
 
-    def suggest(self, values_dict: dict[Keys, float | int]) -> dict[str, float | int]:
+    def suggest(
+        self, values_dict: dict[str, float | int]
+    ) -> dict[str, Union[float, int, str]]:
         """
         Function to organize hyperparameter definition
 
@@ -35,7 +36,9 @@ class KANSearchSpace(HyperParameterModel):
         :type values_dict: dict[str, float | int]
         """
         K = self.Keys
-        hypers = {K(key).value: value for key, value in values_dict.items()}
+        hypers: dict[str, Union[float, int, str]] = {
+            K(key).value: value for key, value in values_dict.items()
+        }
         return hypers
 
     # 3. Suggestion Logic

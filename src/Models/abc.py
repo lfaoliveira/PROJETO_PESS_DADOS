@@ -1,12 +1,13 @@
-from typing import TYPE_CHECKING, Any, Dict, Tuple
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Dict, Tuple, Type, Union
 
+import optuna
 import pandas as pd
 import torch
 import torch.nn as nn
 from lightning import LightningModule
-from pydantic import BaseModel
 from torch import optim
-
+import abc
 from torchmetrics import ConfusionMatrix, MetricCollection
 from torchmetrics.classification import (
     # TODO: add ROC calculation
@@ -22,9 +23,23 @@ if TYPE_CHECKING:
 from Models.utils import analyse_test
 
 
-# classe comum para todos os definidores de hyperparametros
-class HyperParameterModel(BaseModel):
+class SuperKeys(str, Enum):
+    """Base interface for all hyperparameter key enums."""
+
     pass
+
+
+# classe comum para todos os definidores de hyperparametros
+class HyperParameterModel(abc.ABC):
+    Keys: Type[SuperKeys]
+
+    @abc.abstractmethod
+    def suggest(self, values_dict: dict[str, Any]) -> dict[str, Any]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def suggest_optuna(self, trial: optuna.Trial | None = None) -> Dict[str, Any]:
+        raise NotImplementedError
 
 
 class ClassificationModel(LightningModule):

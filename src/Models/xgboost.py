@@ -1,14 +1,24 @@
-from typing import Any, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import torch
 from xgboost import XGBClassifier
 
-from Models.abc import ClassificationModel, HyperParameterModel
+from Models.abc import ClassificationModel, HyperParameterModel, SuperKeys
 
 
 class XGBoostHyperParameters(HyperParameterModel):
     """Hyperparameters for XGBoost model."""
+
+    class Keys(SuperKeys):
+        MAX_DEPTH = "max_depth"
+        LEARNING_RATE = "learning_rate"
+        N_ESTIMATORS = "n_estimators"
+        SUBSAMPLE = "subsample"
+        COLSAMPLE_BYTREE = "colsample_bytree"
+        REG_ALPHA = "reg_alpha"
+        REG_LAMBDA = "reg_lambda"
+        MIN_CHILD_WEIGHT = "min_child_weight"
 
     max_depth: int = 6
     learning_rate: float = 0.1
@@ -18,6 +28,76 @@ class XGBoostHyperParameters(HyperParameterModel):
     reg_alpha: float = 0.0
     reg_lambda: float = 1.0
     min_child_weight: int = 1
+
+    def suggest(self, values_dict: dict[str, float | int]) -> dict[str, float | int]:
+        """Apply suggested hyperparameters from values_dict."""
+        return {
+            self.Keys.MAX_DEPTH.value: int(
+                values_dict.get(self.Keys.MAX_DEPTH.value, self.max_depth)
+            ),
+            self.Keys.LEARNING_RATE.value: float(
+                values_dict.get(self.Keys.LEARNING_RATE.value, self.learning_rate)
+            ),
+            self.Keys.N_ESTIMATORS.value: int(
+                values_dict.get(self.Keys.N_ESTIMATORS.value, self.n_estimators)
+            ),
+            self.Keys.SUBSAMPLE.value: float(
+                values_dict.get(self.Keys.SUBSAMPLE.value, self.subsample)
+            ),
+            self.Keys.COLSAMPLE_BYTREE.value: float(
+                values_dict.get(self.Keys.COLSAMPLE_BYTREE.value, self.colsample_bytree)
+            ),
+            self.Keys.REG_ALPHA.value: float(
+                values_dict.get(self.Keys.REG_ALPHA.value, self.reg_alpha)
+            ),
+            self.Keys.REG_LAMBDA.value: float(
+                values_dict.get(self.Keys.REG_LAMBDA.value, self.reg_lambda)
+            ),
+            self.Keys.MIN_CHILD_WEIGHT.value: int(
+                values_dict.get(self.Keys.MIN_CHILD_WEIGHT.value, self.min_child_weight)
+            ),
+        }
+
+    def suggest_optuna(self, trial: Any = None) -> Dict[str, Any]:
+        """Suggest hyperparameters using Optuna trial."""
+        if trial is None:
+            return {
+                self.Keys.MAX_DEPTH.value: self.max_depth,
+                self.Keys.LEARNING_RATE.value: self.learning_rate,
+                self.Keys.N_ESTIMATORS.value: self.n_estimators,
+                self.Keys.SUBSAMPLE.value: self.subsample,
+                self.Keys.COLSAMPLE_BYTREE.value: self.colsample_bytree,
+                self.Keys.REG_ALPHA.value: self.reg_alpha,
+                self.Keys.REG_LAMBDA.value: self.reg_lambda,
+                self.Keys.MIN_CHILD_WEIGHT.value: self.min_child_weight,
+            }
+
+        return {
+            self.Keys.MAX_DEPTH.value: trial.suggest_int(
+                self.Keys.MAX_DEPTH.value, 3, 10
+            ),
+            self.Keys.LEARNING_RATE.value: trial.suggest_float(
+                self.Keys.LEARNING_RATE.value, 0.01, 0.3
+            ),
+            self.Keys.N_ESTIMATORS.value: trial.suggest_int(
+                self.Keys.N_ESTIMATORS.value, 50, 300
+            ),
+            self.Keys.SUBSAMPLE.value: trial.suggest_float(
+                self.Keys.SUBSAMPLE.value, 0.5, 1.0
+            ),
+            self.Keys.COLSAMPLE_BYTREE.value: trial.suggest_float(
+                self.Keys.COLSAMPLE_BYTREE.value, 0.5, 1.0
+            ),
+            self.Keys.REG_ALPHA.value: trial.suggest_float(
+                self.Keys.REG_ALPHA.value, 0.0, 1.0
+            ),
+            self.Keys.REG_LAMBDA.value: trial.suggest_float(
+                self.Keys.REG_LAMBDA.value, 0.0, 2.0
+            ),
+            self.Keys.MIN_CHILD_WEIGHT.value: trial.suggest_int(
+                self.Keys.MIN_CHILD_WEIGHT.value, 1, 5
+            ),
+        }
 
 
 class XGBoostModel(ClassificationModel):
