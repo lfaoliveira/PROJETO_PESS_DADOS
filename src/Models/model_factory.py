@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Iterable, Literal, Type, Union
+from typing import Iterable, Type
 from Models.abc import ClassificationModel, HyperParameterModel
 from Models.kan import MyKan, KANSearchSpace
 from Models.mlp import MLP, MLPSearchSpace
@@ -38,7 +38,9 @@ class ModelFactory:
     ) -> tuple[Type[ClassificationModel], Type[HyperParameterModel]]:
         """Get a model class by enum key or string name."""
         if isinstance(key, str):
-            assert key in list(self._models.keys())
+            assert key in list(self._models.keys()), (
+                f"key {key} not in {self._models.keys()}"
+            )
             key = self.Models[key.upper()]
         return self._models[key], self._params[key]
 

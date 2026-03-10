@@ -16,7 +16,7 @@ class MLPSearchSpace(HyperParameterModel):
     model_config = ConfigDict(use_enum_values=True, arbitrary_types_allowed=True)
 
     # Internal Enumerator
-    class Keys(SuperKeys):
+    class Keys(SuperKeys.__class__):
         LR = "lr"
         BETA0 = "beta0"
         BETA1 = "beta1"

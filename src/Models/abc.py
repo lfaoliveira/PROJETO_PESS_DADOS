@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, Tuple, Type
 
 import optuna
 import pandas as pd
@@ -26,12 +26,12 @@ from Models.utils import analyse_test
 class SuperKeys(str, Enum):
     """Base interface for all hyperparameter key enums."""
 
-    pass
+    BATCH_SIZE = "batch_size"
 
 
 # classe comum para todos os definidores de hyperparametros
 class HyperParameterModel(abc.ABC):
-    Keys: Type[SuperKeys]
+    Keys_: Type[SuperKeys]
 
     @abc.abstractmethod
     def suggest(self, values_dict: dict[str, Any]) -> dict[str, Any]:
