@@ -84,13 +84,16 @@ class MLP(ClassificationModel):
 
         self.model = nn.Sequential(
             nn.Linear(input_dim, hidden_dims, dtype=torch.float32),
-            nn.ReLU(),
+            nn.SELU(),
         )
         for _ in range(n_layers):
             self.model.append(nn.LazyLinear(hidden_dims, dtype=torch.float32))
             self.model.append(nn.SELU())
+            self.model.append(nn.LazyBatchNorm1d())
 
         self.model.append(nn.Linear(hidden_dims, num_classes, dtype=torch.float32))
+        self.model.append(nn.SELU())
+        self.model.append(nn.Softmax(dim=-1))
         self.example_input_array = torch.zeros(input_dim, dtype=torch.float32)
         self.save_hyperparameters()
         # print(self.model)

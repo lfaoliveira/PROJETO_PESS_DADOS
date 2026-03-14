@@ -4,6 +4,7 @@ import optuna
 import torch
 from kan import KAN
 from pydantic import ConfigDict
+from torch import nn
 
 from Models.abc import ClassificationModel, HyperParameterModel, SuperKeys
 
@@ -104,14 +105,17 @@ class MyKan(ClassificationModel):
         assert grid > 0, "ERROR AT MODEL PARAMETERS: grid must be > 0!"
 
         width_arr = [input_dim, kan_width, num_classes]
-
-        self.model = KAN(
-            width=width_arr,
-            grid=grid,
-            k=spline_order,
-            symbolic_enabled=False,
-            auto_save=False,
+        self.model = nn.Sequential()
+        self.model.append(
+            KAN(
+                width=width_arr,
+                grid=grid,
+                k=spline_order,
+                symbolic_enabled=False,
+                auto_save=False,
+            )
         )
+        self.model.append(nn.Softmax(dim=-1))
 
         self.example_input_array = torch.zeros(1, input_dim, dtype=torch.float32)
 
