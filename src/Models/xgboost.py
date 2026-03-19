@@ -101,7 +101,7 @@ class XGBoostModel(ClassificationModel):
         **kwargs: Any,
     ) -> None:
         super().__init__(input_dim, num_classes, recall_factor, **kwargs)
-        self.is_sklearn = True
+
         self.num_classes = num_classes
         self.input_dim = input_dim
 
