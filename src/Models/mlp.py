@@ -93,7 +93,7 @@ class MLP(ClassificationModel):
 
         self.model.append(nn.Linear(hidden_dims, num_classes, dtype=torch.float32))
         self.model.append(nn.SELU())
-        self.model.append(nn.Softmax(dim=-1))
+        # self.model.append(nn.Sigmoid()) usando BCELossWithLogits
         self.example_input_array = torch.zeros(input_dim, dtype=torch.float32)
         self.save_hyperparameters()
         # print(self.model)

@@ -115,7 +115,7 @@ class MyKan(ClassificationModel):
                 auto_save=False,
             )
         )
-        self.model.append(nn.Softmax(dim=-1))
+        # self.model.append(nn.Sigmoid()) usando BCELossWithLogits
 
         self.example_input_array = torch.zeros(1, input_dim, dtype=torch.float32)
 

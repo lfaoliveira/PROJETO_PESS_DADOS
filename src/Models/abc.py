@@ -103,7 +103,7 @@ class ClassificationModel(LightningModule):
         data, labels = batch
         logits = self.forward(data)
         labels = torch.squeeze(labels.long())
-        loss = nn.functional.cross_entropy(logits, labels, weight=self.class_weight)
+        loss = nn.functional.binary_cross_entropy_with_logits(logits, labels, weight=self.class_weight)
 
         self.log("train_loss", loss, prog_bar=True, on_step=False, on_epoch=True)
         return loss
@@ -114,7 +114,7 @@ class ClassificationModel(LightningModule):
         data, labels = batch
         logits = self.forward(data)
         labels = torch.squeeze(labels.long())
-        loss = nn.functional.cross_entropy(logits, labels, weight=self.class_weight)
+        loss = nn.functional.binary_cross_entropy_with_logits(logits, labels, weight=self.class_weight)
         preds = logits.argmax(dim=-1)
         self.val_metrics.update(preds, labels)
 
