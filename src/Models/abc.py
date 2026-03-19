@@ -140,11 +140,9 @@ class ClassificationModel(LightningModule):
 
         return {"output_df": output_df}
 
-    def configure_optimizers(self) -> torch.optim.Optimizer:
+    def configure_optimizers(self) -> torch.optim.Optimizer | None:
         if self.is_sklearn:
-            return optim.AdamW(
-                self.parameters(), lr=1e-3, betas=(0.99, 0.999), weight_decay=1e-5
-            )
+            return None
         # Using the Enum for safe access
         lr = self.hyperparams.get(self.search_space.LR, 1e-3)
         b0 = self.hyperparams.get(self.search_space.BETA0, 0.9)
